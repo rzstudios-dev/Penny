@@ -5339,10 +5339,10 @@ input::placeholder,
   overflow-wrap: normal;
   white-space: nowrap;
   line-height: 1.18;
-  font-size: clamp(13px, 3.5vw, 20px);
+  font-size: clamp(15px, 4vw, 22px);
 }
 .compact-home .budget-overview strong.amount-long {
-  font-size: clamp(11px, 2.8vw, 17px);
+  font-size: clamp(12px, 3.2vw, 18px);
 }
 .recurring-wallet-label { display: flex; align-items: center; gap: 9px; padding: 10px; border-radius: 11px; background: #ead6bd; }
 .recurring-wallet-label strong, .recurring-wallet-label small { display: block; }
