@@ -83,6 +83,7 @@ type Dialog =
         | "import"
         | "login"
         | "reset"
+        | "reset-confirm"
         | "delete"
         | "fresh"
         | "expired"
@@ -103,6 +104,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("home"),
     [dialog, setDialog] = useState<Dialog | null>(null),
     [monthOffset, setMonthOffset] = useState(0);
+  const [profilePage, setProfilePage] = useState<ProfilePage>("menu");
   const [search, setSearch] = useState(""),
     [kindFilter, setKindFilter] = useState("all"),
     [accountFilter, setAccountFilter] = useState("all"),
@@ -173,14 +175,14 @@ export default function App() {
     return (
       <main className="public-legal">
         <button
-          className="button secondary small legal-back"
+          className="icon-button legal-back"
+          aria-label="Back to About & policies"
           onClick={() => {
             if (hashPage) location.hash = "";
             else location.href = "/";
           }}
         >
-          <Icon name="left" size={17} />
-          Back to Penny
+          <Icon name="left" size={20} />
         </button>
         <a className="brand" href="/">
           <span className="brand-mark">
@@ -228,6 +230,8 @@ export default function App() {
         update,
         tab,
         setTab,
+        profilePage,
+        setProfilePage,
         dialog,
         setDialog,
         monthOffset,
@@ -264,6 +268,8 @@ type ViewProps = {
   update: ReturnType<typeof usePenny>["update"];
   tab: Tab;
   setTab: (tab: Tab) => void;
+  profilePage: ProfilePage;
+  setProfilePage: (page: ProfilePage) => void;
   dialog: Dialog | null;
   setDialog: (d: Dialog | null) => void;
   monthOffset: number;
@@ -295,8 +301,7 @@ function PennyView(p: ViewProps) {
       try { return localStorage.getItem("penny:notification-tip-seen") !== dateKey(); }
       catch { return true; }
     }),
-    [showFilters, setShowFilters] = useState(false),
-    [profilePage, setProfilePage] = useState<ProfilePage>("menu");
+    [showFilters, setShowFilters] = useState(false);
   const tipChecked = useRef(false),
     seenTip = useRef<string | null>(null),
     currentProfilePage = useRef<ProfilePage>("menu");
@@ -308,6 +313,8 @@ function PennyView(p: ViewProps) {
     update,
     tab,
     setTab,
+    profilePage,
+    setProfilePage,
     dialog,
     setDialog,
     close,
@@ -1020,7 +1027,10 @@ function PennyView(p: ViewProps) {
           {tab === "settings" && (
             <Profile
               initialPage={profilePage}
-              onPageChange={(page) => { currentProfilePage.current = page; }}
+              onPageChange={(page) => {
+                currentProfilePage.current = page;
+                setProfilePage(page);
+              }}
               onBackFromNotifications={notificationOrigin ? () => {
                 changeTab(notificationOrigin.tab);
                 if (notificationOrigin.tab === "settings") setProfilePage(notificationOrigin.profilePage || "menu");
@@ -1163,6 +1173,8 @@ function PennyView(p: ViewProps) {
                         ? "Welcome to your cozy corner"
                         : dialog.type === "reset"
                           ? "Refresh this month’s progress"
+                          : dialog.type === "reset-confirm"
+                            ? "One last check"
                           : dialog.type === "delete"
                             ? "Delete account & data"
                             : dialog.type === "fresh"
@@ -1507,6 +1519,23 @@ function PennyView(p: ViewProps) {
               </p>
               <button
                 className="button primary full"
+                onClick={() => setDialog({ type: "reset-confirm" })}
+              >
+                Refresh progress
+              </button>
+              <button className="button secondary full" onClick={close}>
+                Keep this period
+              </button>
+            </div>
+          )}
+          {dialog.type === "reset-confirm" && (
+            <div className="form-stack">
+              <p>
+                Your previous progress view cannot be recovered after this refresh.
+                Your transactions will stay in History and Reports.
+              </p>
+              <button
+                className="button danger full"
                 onClick={() => {
                   update((l) => ({
                     ...l,
@@ -1519,10 +1548,10 @@ function PennyView(p: ViewProps) {
                   message("Fresh budgets, same lovely history.");
                 }}
               >
-                Refresh progress
+                Yes, refresh progress
               </button>
               <button className="button secondary full" onClick={close}>
-                Keep this period
+                Cancel
               </button>
             </div>
           )}

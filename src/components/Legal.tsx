@@ -233,36 +233,29 @@ export default function Legal({
         </div>
       )}
       {page === "delete" && (
-        <>
-          <h3>You’re in control</h3>
-          <p>
-            You can delete your Penny account and its cloud ledger in the app:
-            Profile → Delete account & data. You will confirm by typing
-            DELETE. No subscription is required to delete.
-          </p>
-          <p>
-            This removes the account, transactions, envelope and account names,
-            settings and our membership record. Temporary service backups and
-            Google’s payment records may remain according to those providers’
-            policies. Clear offline copies on your other devices too.
-          </p>
-          <p>
-            Cancel your Google Play subscription separately before deletion to
-            stop future charges. Export your records first if you want to keep a
-            copy.
+        <section className="deletion-guide">
+          <div className="deletion-guide-intro">
+            <span className="deletion-guide-icon" aria-hidden="true">♡</span>
+            <h3>Your data, your choice</h3>
+            <p>Delete your Penny account and cloud data from the app whenever you’re ready.</p>
+          </div>
+          <ol className="deletion-steps">
+            <li><strong>Save a copy</strong><span>Export your records from Profile → Backups & imports if you want to keep them.</span></li>
+            <li><strong>Cancel Premium</strong><span>Cancel your Google Play subscription separately to stop future charges.</span></li>
+            <li><strong>Delete in Penny</strong><span>Open Profile → Delete account & data, then type DELETE to confirm. No subscription is needed.</span></li>
+          </ol>
+          <p className="deletion-guide-note">
+            This removes your account, transactions, envelope and wallet names, settings, and membership record. Clear offline copies on other devices too. Temporary service backups and Google’s payment records may remain under those providers’ policies.
           </p>
           {onDelete && (
             <button className="button danger" onClick={onDelete}>
               Open deletion controls
             </button>
           )}
-          <p>
-            If you cannot open the app, contact the publisher using the verified
-            support address below. Do not email payment-card details or
-            passwords. The publisher will verify account ownership before
-            deletion.
+          <p className="deletion-help">
+            Can’t open the app? Email the support address below. We’ll verify account ownership before deletion. Please don’t send passwords or payment-card details.
           </p>
-        </>
+        </section>
       )}
       <div className="legal-contact">
         <strong>Publisher & support</strong>

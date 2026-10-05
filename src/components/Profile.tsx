@@ -474,15 +474,21 @@ export default function Profile(props: Props) {
         </>
       )}
       {page === "delete" && (
-        <section className="panel settings-section danger-zone">
-          <h3>A clean slate</h3>
-          <p>Export anything you want to keep before deleting your data.</p>
-          <button className="button danger" onClick={props.onDelete}>
+        <section className="panel settings-section danger-zone deletion-controls">
+          <div className="deletion-controls-head">
+            <span className="deletion-guide-icon" aria-hidden="true">♡</span>
+            <div>
+              <h3>A clean slate</h3>
+              <p>You can leave Penny whenever you choose.</p>
+            </div>
+          </div>
+          <p className="deletion-controls-note">Export your records first if you want to keep a copy. Deleting your data cannot be undone.</p>
+          <button className="button danger full" onClick={props.onDelete}>
             {props.signedIn
               ? "Delete account & all data"
               : "Delete all device data"}
           </button>
-          <small>Cancel any Google Play subscription separately.</small>
+          <small>Cancel any Google Play subscription separately to stop future charges.</small>
         </section>
       )}
     </div>

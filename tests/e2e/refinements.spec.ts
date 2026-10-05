@@ -282,6 +282,7 @@ test("Reports tips follow the selected month and cycle when there are insights",
   await page
     .getByRole("button", { name: "Refresh progress", exact: true })
     .click();
+  await page.getByRole("button", { name: "Yes, refresh progress" }).click();
   await page
     .locator(".mobile-nav")
     .getByRole("button", { name: "Reports" })
@@ -307,6 +308,7 @@ test("envelopes show a negative remainder after going over budget", async ({
   await page.getByRole("textbox", { name: "Title", exact: true }).fill("Lunch");
   await page.getByRole("button", { name: "Add expense" }).click();
   await expect(page.locator(".budget-overview .negative")).toContainText("-RM");
+  await expect(page.locator(".budget-overview .negative")).toHaveCSS("color", "rgb(163, 68, 53)");
   await expect(page.locator(".compact-category-meta .negative")).toContainText(
     "-RM",
   );
@@ -499,6 +501,8 @@ test("icon choices expand with a faded Premium preview; terms open a page", asyn
   ).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page).toHaveURL(/#terms$/);
+  await page.getByRole("button", { name: "Back to About & policies" }).click();
+  await expect(page.getByRole("heading", { name: "About & policies" })).toBeVisible();
 });
 
 test("public legal screens link to the published Penny pages", async ({ page }) => {

@@ -204,6 +204,8 @@ test("manual budget reset retains transaction history", async ({ page }) => {
   await page
     .getByRole("button", { name: "Refresh progress", exact: true })
     .click();
+  await expect(page.getByText("Your previous progress view cannot be recovered after this refresh.")).toBeVisible();
+  await page.getByRole("button", { name: "Yes, refresh progress" }).click();
   await page
     .locator(".sidebar nav")
     .getByRole("button", { name: "Overview" })

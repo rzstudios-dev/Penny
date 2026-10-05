@@ -5516,6 +5516,90 @@ input::placeholder,
 .premium-support-actions { order: 7; border-top: 1px solid #dfc8b2; padding-top: 8px; }
 .premium-meta-row .premium-legal-links { flex-wrap: nowrap; gap: 13px; }
 .premium-meta-row .premium-legal-links > * { min-height: 28px; }
+.premium-redeem { margin-bottom: 25px; }
+.premium-meta-row { align-items: flex-start; }
+.premium-details summary,
+.premium-meta-row .premium-legal-links > * {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0;
+  line-height: 1.2;
+}
+.premium-meta-row .premium-legal-links { align-items: flex-start; }
+.compact-home .budget-overview strong.negative { color: #a34435; }
+.public-legal .legal-back { width: 40px; height: 40px; }
+.legal-contact a {
+  display: inline-block;
+  max-width: 100%;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.about-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 4px 0 0;
+}
+.about-content img { width: 130px; height: 130px; margin-bottom: 7px; }
+.about-content h3 { margin-top: 0; }
+.about-content p { margin: 5px 0 12px; }
+.deletion-guide { margin-top: 24px; text-align: left; }
+.deletion-guide-intro {
+  padding: 22px;
+  border: 1px solid #e8cbb6;
+  border-radius: 18px;
+  background: #f3dec9;
+}
+.deletion-guide-icon {
+  display: grid;
+  place-items: center;
+  width: 37px;
+  height: 37px;
+  border-radius: 12px;
+  background: #e5b49a;
+  color: #713e37;
+  font-size: 24px;
+  line-height: 1;
+}
+.deletion-guide-intro h3 { margin: 12px 0 4px; color: #684237; }
+.deletion-guide-intro p { margin: 0; line-height: 1.6; }
+.deletion-steps { list-style: none; counter-reset: deletion; margin: 15px 0; padding: 0; }
+.deletion-steps li {
+  counter-increment: deletion;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  column-gap: 11px;
+  padding: 12px 2px;
+  border-bottom: 1px solid #e6d2c2;
+}
+.deletion-steps li::before {
+  content: counter(deletion);
+  display: grid;
+  place-items: center;
+  grid-row: span 2;
+  width: 27px;
+  height: 27px;
+  border-radius: 9px;
+  background: #ead3bd;
+  color: #784938;
+  font-size: 12px;
+  font-weight: 800;
+}
+.deletion-steps strong { color: #563c31; font-size: 13px; }
+.deletion-steps span { color: #735f50; font-size: 12px; line-height: 1.6; }
+.legal-copy .deletion-guide-note { padding: 14px; border-radius: 11px; background: #f4e8dc; line-height: 1.65; }
+.legal-copy .deletion-help { margin-top: 17px; }
+.deletion-controls { background: #f1e2d4; border-color: #e6c9b7; }
+.deletion-controls-head { display: flex; align-items: center; gap: 12px; }
+.deletion-controls-head h3 { margin: 0 0 4px; color: #723f39; }
+.deletion-controls-head p { margin: 0; color: #74584b; font-size: 12px; }
+.deletion-controls-note { margin: 0; color: #604a40; font-size: 13px; line-height: 1.6; }
+.deletion-controls > small { color: #765a4d; line-height: 1.5; }
 @media (max-width: 760px) {
   .premium-intro { min-height: 150px; }
   .premium-intro img { width: 110px; height: 116px; }
