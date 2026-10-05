@@ -3,6 +3,7 @@ import {
   calculate,
   SCALE,
   defaultSettings,
+  formatCompactMoney,
   formatMoney,
   monthlyPeriod,
   addRecurringIncome,
@@ -50,6 +51,26 @@ describe("Amount entry", () => {
         decimals: 0,
       }),
     ).toBe("¥1,235");
+  });
+  it("shortens large amounts without changing the currency or hiding negative values", () => {
+    expect(formatCompactMoney(999.99 * SCALE, defaultSettings)).toBe("$999.99");
+    expect(formatCompactMoney(1_234 * SCALE, defaultSettings)).toBe("$1.2K");
+    expect(formatCompactMoney(12_345_678 * SCALE, defaultSettings)).toBe(
+      "$12.3M",
+    );
+    expect(formatCompactMoney(-2_400_000_000 * SCALE, defaultSettings)).toBe(
+      "-$2.4B",
+    );
+    expect(formatCompactMoney(999_999 * SCALE, defaultSettings)).toBe(
+      "$999.9K",
+    );
+    expect(
+      formatCompactMoney(1_234 * SCALE, {
+        ...defaultSettings,
+        currency: "EUR",
+        decimalMark: ",",
+      }),
+    ).toBe("€1,2K");
   });
 });
 describe("Budget periods and salary", () => {
@@ -99,7 +120,14 @@ describe("Imports", () => {
     const ledger = fixtureLedger();
     const mapping = guessMapping(["Date", "Amount", "Title", "Notes"]);
     const result = previewImport(
-      [{ Date: "2026-10-05", Amount: "12.50", Title: "Coffee", Notes: "With a friend" }],
+      [
+        {
+          Date: "2026-10-05",
+          Amount: "12.50",
+          Title: "Coffee",
+          Notes: "With a friend",
+        },
+      ],
       mapping,
       ledger,
       "food",
@@ -108,7 +136,10 @@ describe("Imports", () => {
       ".",
     );
     expect(result.errors).toEqual([]);
-    expect(result.transactions[0]).toMatchObject({ note: "Coffee", details: "With a friend" });
+    expect(result.transactions[0]).toMatchObject({
+      note: "Coffee",
+      details: "With a friend",
+    });
   });
   it("maps columns and handles localized decimals and dates", () => {
     const ledger = fixtureLedger("MYR");

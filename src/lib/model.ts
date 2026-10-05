@@ -349,25 +349,35 @@ export function applyScheduledIncome(ledger: Ledger, now = new Date()) {
   for (const wallet of next.accounts) {
     for (const schedule of wallet.incomeSchedules || []) {
       const year = now.getFullYear();
-      const month = schedule.frequency === "yearly" ? schedule.month - 1 : now.getMonth();
-      const day = Math.min(schedule.day, new Date(year, month + 1, 0).getDate());
-      const due = schedule.frequency === "daily" ? dateKey(now) : dateKey(new Date(year, month, day));
+      const month =
+        schedule.frequency === "yearly" ? schedule.month - 1 : now.getMonth();
+      const day = Math.min(
+        schedule.day,
+        new Date(year, month + 1, 0).getDate(),
+      );
+      const due =
+        schedule.frequency === "daily"
+          ? dateKey(now)
+          : dateKey(new Date(year, month, day));
       if (dateKey(now) < due || due < schedule.startsOn) continue;
       const txId = `wallet-income-${wallet.id}-${schedule.frequency}-${due}`;
       if (next.transactions.some((tx) => tx.id === txId)) continue;
       next = {
         ...next,
-        transactions: [...next.transactions, {
-          id: txId,
-          kind: "income",
-          amount: schedule.amount,
-          categoryId: "",
-          accountId: wallet.id,
-          note: `${schedule.frequency[0].toUpperCase()}${schedule.frequency.slice(1)} income`,
-          date: due,
-          createdAt: now.toISOString(),
-          expenseType: "salary",
-        }],
+        transactions: [
+          ...next.transactions,
+          {
+            id: txId,
+            kind: "income",
+            amount: schedule.amount,
+            categoryId: "",
+            accountId: wallet.id,
+            note: `${schedule.frequency[0].toUpperCase()}${schedule.frequency.slice(1)} income`,
+            date: due,
+            createdAt: now.toISOString(),
+            expenseType: "salary",
+          },
+        ],
       };
     }
   }
@@ -421,8 +431,14 @@ export function parseLedger(raw: unknown): Ledger {
     ["daily", "dailyIncome", "dailyIncomeAccount", "dailyIncomeStart"],
   ] as const) {
     const amount = ledger.settings[amountKey];
-    const wallet = ledger.accounts.find((a) => a.id === ledger.settings[accountKey]);
-    if (amount && wallet && !wallet.incomeSchedules.some((s) => s.frequency === frequency)) {
+    const wallet = ledger.accounts.find(
+      (a) => a.id === ledger.settings[accountKey],
+    );
+    if (
+      amount &&
+      wallet &&
+      !wallet.incomeSchedules.some((s) => s.frequency === frequency)
+    ) {
       wallet.incomeSchedules.push({
         frequency,
         amount,
@@ -498,7 +514,10 @@ export function addWallet(ledger: Ledger, wallet: Account): Ledger {
   const first = !ledger.settings.hasCreatedWallet && !ledger.accounts.length;
   return {
     ...ledger,
-    accounts: [...ledger.accounts, { ...wallet, incomeSchedules: wallet.incomeSchedules || [] }],
+    accounts: [
+      ...ledger.accounts,
+      { ...wallet, incomeSchedules: wallet.incomeSchedules || [] },
+    ],
     categories: first
       ? [
           ...ledger.categories,
@@ -548,6 +567,40 @@ export function formatMoney(
           : p.value,
     )
     .join("");
+}
+export function formatCompactMoney(amount: number, settings: Settings) {
+  const absolute = Math.abs(amount) / SCALE;
+  const units = [
+    { value: 1_000_000_000, suffix: "B" },
+    { value: 1_000_000, suffix: "M" },
+    { value: 1_000, suffix: "K" },
+  ];
+  const unit = units.find((item) => absolute >= item.value);
+  const digits = unit ? Math.min(settings.decimals, 1) : settings.decimals;
+  const limit = 1_000 - 10 ** -digits;
+  const scaled = unit
+    ? Math.sign(amount) * Math.min(absolute / unit.value, limit)
+    : amount / SCALE;
+  const parts = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: settings.currency,
+    currencyDisplay: "narrowSymbol",
+    minimumFractionDigits: unit ? 0 : settings.decimals,
+    maximumFractionDigits: digits,
+  }).formatToParts(scaled);
+  return (
+    parts
+      .map((part) =>
+        part.type === "decimal"
+          ? settings.decimalMark
+          : part.type === "group"
+            ? settings.decimalMark === ","
+              ? "."
+              : ","
+            : part.value,
+      )
+      .join("") + (unit?.suffix || "")
+  );
 }
 export function formatDate(date: string, order: Settings["dateOrder"]) {
   const [y, m, d] = date.split("-");

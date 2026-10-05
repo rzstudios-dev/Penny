@@ -1,13 +1,22 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs/promises";
 
-test("first-open guide is short, skippable, and shown only once", async ({ page }) => {
+test("first-open guide is short, skippable, and shown only once", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Meet Penny, your cozy money corner." })).toBeVisible();
-  await page.screenshot({ path: ".impeccable/review/onboarding-guide.png", fullPage: true });
+  await expect(
+    page.getByRole("heading", { name: "Meet Penny, your cozy money corner." }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: ".impeccable/review/onboarding-guide.png",
+    fullPage: true,
+  });
   await page.getByRole("button", { name: "Next" }).click();
-  await expect(page.getByRole("heading", { name: "A place for every little goal." })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "A place for every little goal." }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Create my wallet" }).click();
   await expect(page.getByLabel("Wallet name")).toBeVisible();
   await page.reload();
@@ -29,12 +38,14 @@ test("wallet onboarding, currency and compact search layout", async ({
   page,
 }) => {
   await setup(page);
-  await expect(page.locator(".budget-overview")).toContainText("MYR");
+  await expect(page.locator(".budget-overview")).toContainText("RM");
   await page
     .locator(".mobile-nav")
     .getByRole("button", { name: "Wallets", exact: true })
     .click();
-  await expect(page.getByRole("button", { name: "Edit Cash wallet" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Edit Cash wallet" }),
+  ).toBeVisible();
   await page
     .locator(".mobile-nav")
     .getByRole("button", { name: "Transactions" })
@@ -91,16 +102,29 @@ test("required reusable titles, calculator off and themed calendar", async ({
   });
   await expect(title).toHaveAttribute("required", "");
   await title.fill("Morning coffee");
-  await expect(page.getByRole("button", { name: "Save title for later" })).toHaveAttribute("aria-pressed", "false");
+  await expect(
+    page.getByRole("button", { name: "Save title for later" }),
+  ).toHaveAttribute("aria-pressed", "false");
   await page.waitForTimeout(350);
-  await page.screenshot({ path: ".impeccable/review/save-title-toggle.png", fullPage: true });
+  await page.screenshot({
+    path: ".impeccable/review/save-title-toggle.png",
+    fullPage: true,
+  });
   await page.getByRole("button", { name: "Save title for later" }).click();
-  await expect(page.getByRole("button", { name: "Save after adding" })).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.getByRole("button", { name: "Save after adding" }),
+  ).toHaveAttribute("aria-pressed", "true");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Add transaction" }).click();
-  await page.getByRole("textbox", { name: "Title", exact: true }).fill("Morning");
-  await expect(page.getByRole("button", { name: "Morning coffee", exact: true })).toHaveCount(0);
-  await page.getByRole("textbox", { name: "Title", exact: true }).fill("Morning coffee");
+  await page
+    .getByRole("textbox", { name: "Title", exact: true })
+    .fill("Morning");
+  await expect(
+    page.getByRole("button", { name: "Morning coffee", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("textbox", { name: "Title", exact: true })
+    .fill("Morning coffee");
   await page.getByRole("button", { name: "Save title for later" }).click();
   await page
     .getByRole("textbox", { name: "Amount", exact: true })
@@ -118,54 +142,99 @@ test("required reusable titles, calculator off and themed calendar", async ({
   await page
     .getByRole("textbox", { name: "Title", exact: true })
     .fill("Morning");
-  await page.getByRole("button", { name: "Morning coffee", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Morning coffee", exact: true })
+    .click();
   await expect(
     page.getByRole("textbox", { name: "Title", exact: true }),
   ).toHaveValue("Morning coffee");
   await page.getByRole("textbox", { name: "Title", exact: true }).click();
-  await page.getByRole("button", { name: "Remove saved title Morning coffee" }).click();
-  await expect(page.getByRole("button", { name: "Morning coffee", exact: true })).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Remove saved title Morning coffee" })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Morning coffee", exact: true }),
+  ).toHaveCount(0);
 });
-test("optional notes stay with entries and appear in CSV backups", async ({ page }) => {
+test("optional notes stay with entries and appear in CSV backups", async ({
+  page,
+}) => {
   await setup(page);
   await page.getByRole("button", { name: "Add transaction" }).click();
   await page.getByRole("textbox", { name: "Amount", exact: true }).fill("9.50");
   await page.getByRole("textbox", { name: "Title", exact: true }).fill("Tea");
   await page.getByRole("textbox", { name: /Notes/ }).fill("Met Mia after work");
   await page.getByRole("button", { name: "Add expense" }).click();
-  await page.locator(".mobile-nav").getByRole("button", { name: "Transactions" }).click();
+  await page
+    .locator(".mobile-nav")
+    .getByRole("button", { name: "Transactions" })
+    .click();
   await expect(page.getByText("Met Mia after work")).toBeVisible();
   await page.getByRole("button", { name: /Tea/ }).click();
-  await expect(page.getByRole("textbox", { name: /Notes/ })).toHaveValue("Met Mia after work");
+  await expect(page.getByRole("textbox", { name: /Notes/ })).toHaveValue(
+    "Met Mia after work",
+  );
   await page.keyboard.press("Escape");
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export", exact: true }).click();
   const download = await downloadPromise;
-  expect(await fs.readFile((await download.path())!, "utf8")).toContain("Met Mia after work");
-  await page.locator(".mobile-nav").getByRole("button", { name: "Home" }).click();
+  expect(await fs.readFile((await download.path())!, "utf8")).toContain(
+    "Met Mia after work",
+  );
+  await page
+    .locator(".mobile-nav")
+    .getByRole("button", { name: "Home" })
+    .click();
   await page.getByRole("button", { name: "Add transaction" }).click();
   await page.getByRole("button", { name: "Income", exact: true }).click();
   await page.getByRole("textbox", { name: "Amount", exact: true }).fill("25");
   await page.getByRole("textbox", { name: "Title", exact: true }).fill("Bonus");
   await page.getByRole("textbox", { name: /Notes/ }).fill("A little thank-you");
   await page.getByRole("button", { name: "Add income" }).click();
-  await page.locator(".mobile-nav").getByRole("button", { name: "Transactions" }).click();
+  await page
+    .locator(".mobile-nav")
+    .getByRole("button", { name: "Transactions" })
+    .click();
   await expect(page.getByText("A little thank-you")).toBeVisible();
 });
 
-test("large home amounts remain visible on narrow screens", async ({ page }) => {
+test("large home amounts remain visible on narrow screens", async ({
+  page,
+}) => {
   await setup(page);
   await page.setViewportSize({ width: 320, height: 700 });
   await page.getByRole("button", { name: "Add transaction" }).click();
-  await page.getByRole("textbox", { name: "Amount", exact: true }).fill("999999999.99");
-  await page.getByRole("textbox", { name: "Title", exact: true }).fill("Large amount");
+  await page
+    .getByRole("textbox", { name: "Amount", exact: true })
+    .fill("999999999.99");
+  await page
+    .getByRole("textbox", { name: "Title", exact: true })
+    .fill("Large amount");
   await page.getByRole("button", { name: "Add expense" }).click();
-  await expect(page.locator(".budget-overview")).toContainText("999,999,999.99");
-  expect(await page.locator(".budget-overview strong").first().evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await expect(page.locator(".budget-overview")).toContainText("999.9M");
+  await expect(page.locator(".budget-overview strong").first()).toHaveAttribute(
+    "title",
+    /999,999,999\.99$/,
+  );
+  expect(
+    await page
+      .locator(".budget-overview strong")
+      .evaluateAll((elements) =>
+        elements.every(
+          (element) => element.scrollWidth <= element.clientWidth + 1,
+        ),
+      ),
+  ).toBe(true);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });
 
-test("Reports tips follow the selected month and cycle when there are insights", async ({ page }) => {
+test("Reports tips follow the selected month and cycle when there are insights", async ({
+  page,
+}) => {
   await setup(page);
   await page.getByRole("button", { name: "Edit Food & drinks budget" }).click();
   await page.getByLabel("Monthly budget").fill("10");
@@ -177,28 +246,58 @@ test("Reports tips follow the selected month and cycle when there are insights",
   await page.getByRole("button", { name: "Add transaction" }).click();
   await page.getByRole("button", { name: "Income", exact: true }).click();
   await page.getByRole("textbox", { name: "Amount", exact: true }).fill("50");
-  await page.getByRole("textbox", { name: "Title", exact: true }).fill("Payday");
+  await page
+    .getByRole("textbox", { name: "Title", exact: true })
+    .fill("Payday");
   await page.getByRole("button", { name: "Add income" }).click();
-  await page.locator(".mobile-nav").getByRole("button", { name: "Reports" }).click();
+  await page
+    .locator(".mobile-nav")
+    .getByRole("button", { name: "Reports" })
+    .click();
   const card = page.getByRole("region", { name: "Monthly spending tips" });
   await expect(card.locator(".reports-tip-slide")).toHaveCount(3);
-  await expect(card.locator(".reports-tip-slide").first()).toContainText("Food & drinks");
-  await expect(page.getByRole("heading", { name: "Your spending mix" })).toBeVisible();
-  await page.screenshot({ path: ".impeccable/review/reports-tips-compact.png", fullPage: true });
+  await expect(card.locator(".reports-tip-slide").first()).toContainText(
+    "Food & drinks",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Your spending mix" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: ".impeccable/review/reports-tips-compact.png",
+    fullPage: true,
+  });
   await page.waitForTimeout(6600);
-  expect(await card.locator(".reports-tips-viewport").evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
-  await page.locator(".mobile-nav").getByRole("button", { name: "Profile" }).click();
-  await page.getByRole("button", { name: "Refresh this month’s progress" }).click();
-  await page.getByRole("button", { name: "Refresh progress", exact: true }).click();
-  await page.locator(".mobile-nav").getByRole("button", { name: "Reports" }).click();
-  await expect(card.locator(".reports-tip-slide").first()).toContainText("Food & drinks");
+  expect(
+    await card
+      .locator(".reports-tips-viewport")
+      .evaluate((element) => element.scrollLeft),
+  ).toBeGreaterThan(0);
+  await page
+    .locator(".mobile-nav")
+    .getByRole("button", { name: "Profile" })
+    .click();
+  await page
+    .getByRole("button", { name: "Refresh this month’s progress" })
+    .click();
+  await page
+    .getByRole("button", { name: "Refresh progress", exact: true })
+    .click();
+  await page
+    .locator(".mobile-nav")
+    .getByRole("button", { name: "Reports" })
+    .click();
+  await expect(card.locator(".reports-tip-slide").first()).toContainText(
+    "Food & drinks",
+  );
   await page.getByRole("button", { name: "Previous budget period" }).click();
   await expect(card.locator(".reports-tip-slide")).toHaveCount(1);
   await expect(card).toContainText("A fresh month");
   await page.getByRole("button", { name: "Next budget period" }).click();
   await expect(card.locator(".reports-tip-slide")).toHaveCount(3);
 });
-test("envelopes show a negative remainder after going over budget", async ({ page }) => {
+test("envelopes show a negative remainder after going over budget", async ({
+  page,
+}) => {
   await setup(page);
   await page.getByRole("button", { name: "Edit Food & drinks budget" }).click();
   await page.getByLabel("Monthly budget").fill("10");
@@ -207,8 +306,10 @@ test("envelopes show a negative remainder after going over budget", async ({ pag
   await page.getByRole("textbox", { name: "Amount", exact: true }).fill("12");
   await page.getByRole("textbox", { name: "Title", exact: true }).fill("Lunch");
   await page.getByRole("button", { name: "Add expense" }).click();
-  await expect(page.locator(".budget-overview .negative")).toContainText("-MYR");
-  await expect(page.locator(".compact-category-meta .negative")).toContainText("-MYR");
+  await expect(page.locator(".budget-overview .negative")).toContainText("-RM");
+  await expect(page.locator(".compact-category-meta .negative")).toContainText(
+    "-RM",
+  );
 });
 test("Wallet income is saved once and Profile stays compact", async ({
   page,
@@ -222,16 +323,34 @@ test("Wallet income is saved once and Profile stays compact", async ({
     0,
   );
   await expect(page.getByRole("switch", { name: "Cloud sync" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /Your wallets/ })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /Income & budget resets/ })).toHaveCount(0);
-  await expect(page.locator(".profile-menu").getByRole("button", { name: /^Notifications/ })).toHaveCount(0);
-  await page.locator(".mobile-nav").getByRole("button", { name: "Wallets" }).click();
-  await expect(page.locator(".wallet-envelope-count")).toContainText("1 envelope");
-  await expect(page.getByRole("button", { name: /View 1 envelope/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Your wallets/ })).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByRole("button", { name: /Income & budget resets/ }),
+  ).toHaveCount(0);
+  await expect(
+    page
+      .locator(".profile-menu")
+      .getByRole("button", { name: /^Notifications/ }),
+  ).toHaveCount(0);
+  await page
+    .locator(".mobile-nav")
+    .getByRole("button", { name: "Wallets" })
+    .click();
+  await expect(page.locator(".wallet-envelope-count")).toContainText(
+    "1 envelope",
+  );
+  await expect(
+    page.getByRole("button", { name: /View 1 envelope/ }),
+  ).toHaveCount(0);
   await expect(page.locator(".wallet-cycle")).toHaveCount(0);
   await page.getByRole("button", { name: /Set recurring income/ }).click();
   await page.waitForTimeout(350);
-  await page.screenshot({ path: ".impeccable/review/wallet-income-form.png", fullPage: true });
+  await page.screenshot({
+    path: ".impeccable/review/wallet-income-form.png",
+    fullPage: true,
+  });
   await page.getByRole("combobox", { name: "Repeat" }).click();
   await page.getByRole("option", { name: "Every day" }).click();
   await page.getByLabel("Amount · MYR").fill("20");
@@ -249,40 +368,77 @@ test("Wallet income is saved once and Profile stays compact", async ({
   await expect(page.getByText("Daily income", { exact: true })).toHaveCount(1);
 });
 
-test("a wallet can add monthly and yearly fixed income on chosen dates", async ({ page }) => {
+test("a wallet can add monthly and yearly fixed income on chosen dates", async ({
+  page,
+}) => {
   await setup(page);
   const today = new Date();
-  await page.locator(".mobile-nav").getByRole("button", { name: "Wallets" }).click();
+  await page
+    .locator(".mobile-nav")
+    .getByRole("button", { name: "Wallets" })
+    .click();
   await page.getByRole("button", { name: /Set recurring income/ }).click();
-  await page.getByRole("combobox", { name: "Day of month", exact: true }).click();
-  await page.getByRole("option", { name: String(today.getDate()), exact: true }).click();
+  await page
+    .getByRole("combobox", { name: "Day of month", exact: true })
+    .click();
+  await page
+    .getByRole("option", { name: String(today.getDate()), exact: true })
+    .click();
   await page.getByLabel("Amount · MYR").fill("120");
   await page.getByRole("button", { name: "Save monthly income" }).click();
   await page.getByRole("button", { name: /1 income schedule/ }).click();
   await page.getByRole("combobox", { name: "Repeat" }).click();
   await page.getByRole("option", { name: "Every year" }).click();
-  await page.getByRole("combobox", { name: "Month of year", exact: true }).click();
-  await page.getByRole("option", { name: today.toLocaleDateString("en", { month: "long" }) }).click();
-  await page.getByRole("combobox", { name: "Day of month", exact: true }).click();
-  await page.getByRole("option", { name: String(today.getDate()), exact: true }).click();
+  await page
+    .getByRole("combobox", { name: "Month of year", exact: true })
+    .click();
+  await page
+    .getByRole("option", {
+      name: today.toLocaleDateString("en", { month: "long" }),
+    })
+    .click();
+  await page
+    .getByRole("combobox", { name: "Day of month", exact: true })
+    .click();
+  await page
+    .getByRole("option", { name: String(today.getDate()), exact: true })
+    .click();
   await page.getByLabel("Amount · MYR").fill("500");
   await page.getByRole("button", { name: "Save yearly income" }).click();
-  await page.screenshot({ path: ".impeccable/review/wallets-income.png", fullPage: true });
-  await page.locator(".mobile-nav").getByRole("button", { name: "Transactions" }).click();
-  await expect(page.getByText("Monthly income", { exact: true })).toHaveCount(1);
+  await page.screenshot({
+    path: ".impeccable/review/wallets-income.png",
+    fullPage: true,
+  });
+  await page
+    .locator(".mobile-nav")
+    .getByRole("button", { name: "Transactions" })
+    .click();
+  await expect(page.getByText("Monthly income", { exact: true })).toHaveCount(
+    1,
+  );
   await expect(page.getByText("Yearly income", { exact: true })).toHaveCount(1);
   await page.reload();
-  await page.locator(".mobile-nav").getByRole("button", { name: "Transactions" }).click();
-  await expect(page.getByText("Monthly income", { exact: true })).toHaveCount(1);
+  await page
+    .locator(".mobile-nav")
+    .getByRole("button", { name: "Transactions" })
+    .click();
+  await expect(page.getByText("Monthly income", { exact: true })).toHaveCount(
+    1,
+  );
   await expect(page.getByText("Yearly income", { exact: true })).toHaveCount(1);
 });
 test("daily tips live in Reports and can be read from the bell", async ({
   page,
 }) => {
   await setup(page);
-  await page.locator(".mobile-nav").getByRole("button", { name: "Reports" }).click();
+  await page
+    .locator(".mobile-nav")
+    .getByRole("button", { name: "Reports" })
+    .click();
   await expect(page.locator(".reports-tips")).toBeVisible();
-  await expect(page.locator(".reports-tips select, .reports-tips [role=combobox]")).toHaveCount(0);
+  await expect(
+    page.locator(".reports-tips select, .reports-tips [role=combobox]"),
+  ).toHaveCount(0);
   await page.getByRole("button", { name: /^Notifications/ }).click();
   await page.getByRole("button", { name: "Reminder settings" }).click();
   await page.getByRole("combobox", { name: "Tips when opening Penny" }).click();
@@ -305,7 +461,10 @@ test("daily tips live in Reports and can be read from the bell", async ({
   ).toBeVisible();
   await page.getByRole("button", { name: "Back to previous page" }).click();
   await expect(page.locator(".budget-overview")).toBeVisible();
-  await page.locator(".mobile-nav").getByRole("button", { name: "Reports" }).click();
+  await page
+    .locator(".mobile-nav")
+    .getByRole("button", { name: "Reports" })
+    .click();
   await page.getByRole("button", { name: /^Notifications/ }).click();
   await page.getByRole("button", { name: "Reminder settings" }).click();
   await page.getByRole("button", { name: "Back to previous page" }).click();

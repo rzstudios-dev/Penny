@@ -5336,10 +5336,13 @@ input::placeholder,
   display: block;
   max-width: 100%;
   overflow: visible;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  overflow-wrap: normal;
+  white-space: nowrap;
   line-height: 1.18;
-  font-size: clamp(11px, 2.9vw, 19px);
+  font-size: clamp(13px, 3.5vw, 20px);
+}
+.compact-home .budget-overview strong.amount-long {
+  font-size: clamp(11px, 2.8vw, 17px);
 }
 .recurring-wallet-label { display: flex; align-items: center; gap: 9px; padding: 10px; border-radius: 11px; background: #ead6bd; }
 .recurring-wallet-label strong, .recurring-wallet-label small { display: block; }
