@@ -501,6 +501,21 @@ test("icon choices expand with a faded Premium preview; terms open a page", asyn
   await expect(page).toHaveURL(/#terms$/);
 });
 
+test("public legal screens link to the published Penny pages", async ({ page }) => {
+  const pages = [
+    ["privacy", "View published privacy policy", "privacy-policy"],
+    ["terms", "View published terms", "terms-conditions"],
+    ["delete", "View published deletion page", "account-deletion"],
+  ] as const;
+  for (const [route, label, slug] of pages) {
+    await page.goto(`/?page=${route}`);
+    await expect(page.getByRole("link", { name: label })).toHaveAttribute(
+      "href",
+      `https://sites.google.com/view/penny-rzstudios/${slug}`,
+    );
+  }
+});
+
 test("Excel imports retain wallet currency and expense amounts", async ({
   page,
 }) => {

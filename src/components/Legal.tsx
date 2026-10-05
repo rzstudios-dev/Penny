@@ -1,3 +1,5 @@
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
 import Icon from "./Icon";
 export default function Legal({
   page,
@@ -9,6 +11,18 @@ export default function Legal({
   const operator = import.meta.env.VITE_OPERATOR_NAME,
     email = import.meta.env.VITE_SUPPORT_EMAIL,
     country = import.meta.env.VITE_OPERATOR_COUNTRY;
+  const publishedUrl = {
+    privacy: import.meta.env.VITE_PRIVACY_URL,
+    terms: import.meta.env.VITE_TERMS_URL,
+    about: import.meta.env.VITE_SITE_URL,
+    delete: import.meta.env.VITE_DELETE_ACCOUNT_URL,
+  }[page];
+  const publishedLabel = {
+    privacy: "View published privacy policy",
+    terms: "View published terms",
+    about: "Visit Penny's website",
+    delete: "View published deletion page",
+  }[page];
   const pending = !operator || !email;
   return (
     <article className="legal-copy">
@@ -25,6 +39,22 @@ export default function Legal({
         Updated 5 October 2026{operator ? ` · Operated by ${operator}` : ""}
         {country ? ` · ${country}` : ""}
       </p>
+      {publishedUrl && (
+        <a
+          className="legal-online-link"
+          href={publishedUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(event) => {
+            if (Capacitor.isNativePlatform()) {
+              event.preventDefault();
+              void Browser.open({ url: publishedUrl });
+            }
+          }}
+        >
+          {publishedLabel} ↗
+        </a>
+      )}
       {page === "privacy" && (
         <>
           <h3>Your privacy, with care</h3>

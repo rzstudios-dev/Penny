@@ -21,6 +21,7 @@ const required = [
   "VITE_OPERATOR_COUNTRY",
   "VITE_SUPPORT_EMAIL",
   "VITE_PRIVACY_URL",
+  "VITE_TERMS_URL",
   "VITE_DELETE_ACCOUNT_URL",
   "VITE_PLAY_PRODUCT_ID",
 ];
@@ -28,7 +29,9 @@ const missing = required.filter((key) => !configuration[key]);
 for (const key of [
   "VITE_SUPABASE_URL",
   "VITE_PRIVACY_URL",
+  "VITE_TERMS_URL",
   "VITE_DELETE_ACCOUNT_URL",
+  "VITE_SITE_URL",
 ]) {
   if (configuration[key] && !/^https:\/\//.test(configuration[key]))
     missing.push(`${key} must use HTTPS`);

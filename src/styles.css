@@ -1867,6 +1867,16 @@ label small {
   font-size: 13px;
   line-height: 1.9;
 }
+.legal-online-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .legal-contact {
   border-top: 1px solid var(--line);
   margin-top: 35px;
