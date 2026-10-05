@@ -103,17 +103,17 @@ test("required reusable titles, calculator off and themed calendar", async ({
   await expect(title).toHaveAttribute("required", "");
   await title.fill("Morning coffee");
   await expect(
-    page.getByRole("button", { name: "Save title for later" }),
-  ).toHaveAttribute("aria-pressed", "false");
+    page.getByRole("switch", { name: "Save title for later" }),
+  ).toHaveAttribute("aria-checked", "false");
   await page.waitForTimeout(350);
   await page.screenshot({
     path: ".impeccable/review/save-title-toggle.png",
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Save title for later" }).click();
+  await page.getByRole("switch", { name: "Save title for later" }).click();
   await expect(
-    page.getByRole("button", { name: "Save after adding" }),
-  ).toHaveAttribute("aria-pressed", "true");
+    page.getByRole("switch", { name: "Save title for later" }),
+  ).toHaveAttribute("aria-checked", "true");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Add transaction" }).click();
   await page
@@ -125,7 +125,7 @@ test("required reusable titles, calculator off and themed calendar", async ({
   await page
     .getByRole("textbox", { name: "Title", exact: true })
     .fill("Morning coffee");
-  await page.getByRole("button", { name: "Save title for later" }).click();
+  await page.getByRole("switch", { name: "Save title for later" }).click();
   await page
     .getByRole("textbox", { name: "Amount", exact: true })
     .fill("12.50");

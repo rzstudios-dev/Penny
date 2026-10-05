@@ -59,12 +59,16 @@ export default function DescriptionField({
       <button
         type="button"
         className={`save-title-action ${saveForLater || isSaved ? "selected" : ""}`}
-        aria-pressed={saveForLater || isSaved}
+        role="switch"
+        aria-checked={saveForLater || isSaved}
         disabled={isSaved}
         onClick={() => onSaveForLater(!saveForLater)}
       >
-        <Icon name={saveForLater || isSaved ? "check" : "bookmark"} size={15} />
-        {isSaved ? "Title saved" : saveForLater ? "Save after adding" : "Save title for later"}
+        <span className="save-title-action-label">
+          <Icon name="bookmark" size={17} />
+          {isSaved ? "Title already saved" : "Save title for later"}
+        </span>
+        <span className="save-title-switch" aria-hidden="true"><span /></span>
       </button>
       {open && matches.length > 0 && (
         <div
