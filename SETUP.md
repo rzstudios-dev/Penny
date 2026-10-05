@@ -1,0 +1,60 @@
+# Configure and publish Penny
+
+Use only Penny's Supabase project `vcfalijtdakuyyfbdghy`. The database connection supplied by the publisher is IPv6-only; on an IPv4-only machine, copy the **Session pooler** connection string from this project's Dashboard → Connect. Do not buy the IPv4 add-on solely for setup. The supplied GitHub repository is public. Never put database credentials, Gmail credentials, service-role keys, Google service-account keys, or lifetime Premium codes in frontend `VITE_` variables or Git.
+
+## Authentication and opt-in financial sync
+
+1. In the Penny project, copy the public project URL and **publishable key** from Dashboard → Project Settings → API Keys into ignored `.env.local`. The app works locally without a key, but login and paid purchases require it. The known URL is `https://vcfalijtdakuyyfbdghy.supabase.co`.
+2. Inspect the project's existing database objects, then apply every SQL file in `supabase/migrations` in filename order to this project. All app-owned tables and functions have `penny_` names; private records live in `penny_private`. Deploy `penny-verify-purchase`, `penny-premium-status`, `penny-redeem-premium`, and `penny-delete-account` from `supabase/functions`. Every handler authenticates its bearer token using Supabase `getUser`; gateway JWT verification is disabled in the supplied configuration for compatibility with current signing keys.
+3. Set server-only secrets: `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`, `ANDROID_PACKAGE_NAME=app.penny.expenses`, and `PLAY_PRODUCT_ID=penny_premium`. Supabase supplies the function's URL/service credential. Give the Google service account only the Play permissions needed for subscription verification and acknowledgment; enable the Android Publisher API.
+4. Configure Google OAuth in Supabase with your own Google OAuth client. Allow your hosted web origin and `app.penny.expenses://auth/callback` as auth redirect URLs for both Google and email sign-in. Use Supabase's callback URL in the Google OAuth client. Test both a cold-start Android callback and a browser callback.
+5. Enable email sign-in and new-user signup in this project. Configure **custom SMTP** in Dashboard → Authentication → SMTP: sender `noreply.rzstudios@gmail.com`, sender name `Penny`, host `smtp.gmail.com`, port `587`, username the same sender address, and the Gmail app password **only in the Dashboard**. In Authentication → Email Templates, set **Confirm signup** to `supabase/email-templates/confirmation.html` and **Magic Link** to `supabase/email-templates/magic-link.html`; use subjects `Confirm your Penny email` and `Your Penny sign-in code`. Both include `{{ .Token }}`, so the app's code field works for new and returning users. Supabase's built-in SMTP is limited to authorized test addresses and is not for production. Test delivery, spam handling, rate limits, code expiry and resend. Gmail sending limits and account restrictions may make it unsuitable at scale; you can switch SMTP providers without changing the app. See [Supabase passwordless email](https://supabase.com/docs/guides/auth/auth-email-passwordless), [custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp), and [Google app passwords](https://support.google.com/accounts/answer/185833).
+6. Test local use while signed out, signing in with sync still off, explicit upload/download consent, disabling sync, conflicts between two devices, CSV backup, deleting just the cloud copy, and deleting the signed-in account and its data. Inspect both owners' permissions using test accounts. The repository's database tests run entirely in memory and do not prove a deployed project's configuration.
+
+Financial data is written locally first. Cloud upload requires the `cloudSync` switch and confirmed owner. Existing cloud and local ledgers are not silently merged. Android OS auto-backup of local financial storage is disabled. Users can export backups themselves.
+
+## Google Play subscription
+
+Create subscription `penny_premium` and an active monthly, auto-renewing base plan with a US$5 target price. Set regional pricing as desired. **Do not create trials or introductory offers.** Native checkout only accepts a paid monthly base plan with one recurring pricing phase, a positive price and no offer ID. Displayed price comes from Play where available.
+
+Checkout requires an authenticated Penny user. It binds the purchase to a SHA-256 account identifier; the server checks that identifier, product, expiry and subscription state before granting access. Pending or suspended purchases never grant Premium. Online status requests re-check stored receipts with Google. Android foreground refresh restores interrupted purchases. Test active, canceled-but-unexpired, grace, pending, payment failure, expired, refunded, restored and account-switch cases using Play license testers. Retest after configuring the live product; these cannot be confirmed with the unconfigured browser app.
+
+Google Play supplies the payment flow, with no separate upfront billing-platform subscription. It still has an unavoidable [US$25 developer registration fee](https://support.google.com/googleplay/android-developer/answer/6112435), and [subscription service fees](https://support.google.com/googleplay/android-developer/answer/112622) deducted from sales. Hosting/authentication free tiers have quotas and may incur charges if you exceed them. Revenue is not guaranteed.
+
+## Lifetime Premium codes
+
+Set `LIFETIME_PREMIUM_CODE` as a **server-only Edge Function secret** in Penny's separate Supabase project. For local function development, copy `supabase/functions/.env.example` to `supabase/functions/.env`. Choose an unpredictable, case-sensitive random code of 24–128 characters. Never set a `VITE_LIFETIME_PREMIUM_CODE`: Vite values are included in the public app bundle. See [Supabase function secrets](https://supabase.com/docs/guides/functions/secrets).
+
+Premium's visible code input submits with the arrow button. It requires sign-in and a connection; it does not enable cloud sync or upload the ledger. A valid code grants lifetime access to that account, survives future code rotation/removal and expired Play receipts, and is restored on sign-in. Five attempts per account per 15 minutes are enforced atomically in the database. Authenticated clients cannot grant membership or call the service-only limiter/grant functions. There is no default working code in source control.
+
+The configured code is reusable across accounts for a free promotion; distribute it privately and rotate it when you want to stop new redemptions. Do not use it to direct users to outside payment for digital features. Paid subscriptions continue to use Google Play under its [Payments policy](https://support.google.com/googleplay/android-developer/answer/9858738). Redeeming a code does not cancel an existing Play subscription. Account deletion removes the lifetime grant and attempt record. Test redemption, invalid codes, rate limiting, account switches, restoration and deletion after deploying to your separate project.
+
+## Legal and public pages
+
+The publisher is Khandoker Ashik Uz Zaman in Bangladesh, with support at `rzstudios.dev@gmail.com`. These public details are in ignored `.env.local` for local builds. Review the in-app policies in `src/components/Legal.tsx` and the ready-to-paste Google Sites copy in `legal/privacy-policy.md`, `legal/terms-and-conditions.md`, and `legal/account-deletion.md` against the final operation before publishing.
+
+Create three public Google Sites pages: **Privacy Policy**, **Terms and Conditions**, and **Delete your Penny account and data**. Paste the corresponding `legal/` files, publish the site, and verify each page opens without sign-in. Put the published Privacy and deletion HTTPS URLs in `VITE_PRIVACY_URL` and `VITE_DELETE_ACCOUNT_URL` and in Play Console; link the Terms page from the site navigation. The app also has public `?page=privacy`, `?page=terms`, and `?page=delete` routes if the web build is later hosted. [Google Play account deletion requirements](https://support.google.com/googleplay/android-developer/answer/13327111) require an in-app path and an outside-app request route. Penny provides in-app deletion and a support-email request route; the publisher must actually handle email requests. Deleting data does not cancel Google Play billing, and the UI explains this.
+
+Declare financial data uploaded after opt-in, authentication identifiers, purchase information and involved providers accurately in Data safety. Do not claim that the app never transmits financial data when sync is enabled. There are no ad SDKs. Consent, retention, deletion handling and consumer rights must reflect the publisher's real operation; generated policies do not certify compliance.
+
+## Android build and store checks
+
+Run `npm run android:sync`. Using JDK 21 and your Android SDK, build `assembleDebug` for testing and `bundleRelease` for a release AAB. Current artifact paths are `android/app/build/outputs/apk/debug/app-debug.apk` and `android/app/build/outputs/bundle/release/app-release.aab`.
+
+The release bundle is **unsigned until you configure your own upload key**. In Android Studio, use Build → Generate Signed App Bundle, create or select a securely backed-up upload keystore, select release, and enroll in Play App Signing. Keep signing credentials and keystores out of source control. Increment `versionCode` for each uploaded build. Verify package name before creating the Play app; changing it later creates a different app identity.
+
+Before publishing:
+
+- Run `npm run release:check`, unit/database tests, browser tests, and the final build with production public configuration. A successful configuration check does not exercise live services.
+- Test the **signed** release build installed through a Play test track; direct APK installation does not exercise real Play subscription availability.
+- Enable Android notifications from the top bell → Reminder settings. Use the five-second test, then test daily/weekly/monthly schedules, permission denial, timezone changes, restart and battery-saving delivery. Reminders are local scheduled notifications, so no Firebase project is required. Delivery timing remains controlled by Android and device power settings.
+- Test imports with your real export files, offline persistence, app restarts, custom date/number formats, wallet budgets and supported currencies. Older `.xls` files must be saved as `.xlsx` before importing.
+- Verify portrait/small screens, enlarged text, keyboard and screen-reader access, reduced motion, privacy/deletion URLs, support contact and store screenshots.
+- Complete content rating, target audience, ads declaration, Data safety, subscription disclosures and any financial-feature declarations applicable to your app. Check [current target API requirements](https://support.google.com/googleplay/android-developer/answer/11926878).
+- New personal developer accounts may require [12 opted-in testers for 14 consecutive days](https://support.google.com/googleplay/android-developer/answer/14151465) before applying for production access. Follow the requirements shown in your actual Console account.
+
+Publish only after these owner and device checks are complete. The provided source and test build can be used to complete them; there is no claim of store approval or live-service verification yet.
+
+## Wallet envelopes
+
+The UI calls spending groups Envelopes; the stored `categories` and `categoryId` keys remain stable for backup compatibility. Each envelope has a `walletId`. Only the first wallet is seeded with Food & drinks; later wallets are empty. CSV exports use an `envelope` column, and import accepts both `envelope` and older `category` headers. Local/backup migration assigns old shared groups to the wallets that used them, remaps expense references and keeps customized budgets. Untouched unused auto-created presets are removed. Apply all migrations so server validation rejects an expense using another wallet's envelope.

@@ -1,0 +1,3 @@
+-keep class app.penny.expenses.PlayBillingPlugin { *; }
+-keep class com.getcapacitor.** { *; }
+-keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }

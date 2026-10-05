@@ -1,0 +1,13 @@
+project_id = "vcfalijtdakuyyfbdghy"
+
+[functions.penny-verify-purchase]
+verify_jwt = false
+[functions.penny-premium-status]
+verify_jwt = false
+[functions.penny-delete-account]
+verify_jwt = false
+[functions.penny-redeem-premium]
+verify_jwt = false
+# JWTs are explicitly validated using auth.getUser in every handler, including
+# recently authenticated session validation for account deletion. This supports
+# current Supabase signing keys instead of the legacy gateway JWT verifier.
