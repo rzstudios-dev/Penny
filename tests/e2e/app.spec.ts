@@ -148,9 +148,8 @@ test("free category limit, Premium in Profile and cloud sync off by default", as
     page.getByRole("switch", { name: "Cloud sync" }),
   ).not.toBeChecked();
   await page.getByRole("switch", { name: "Cloud sync" }).click();
-  await expect(page.getByRole("dialog")).toContainText(
-    "Sign-in is waiting for the publisher’s setup.",
-  );
+  await expect(page.getByRole("dialog")).toContainText("Sign in for a membership");
+  await expect(page.getByRole("switch", { name: "Cloud sync" })).not.toBeChecked();
 });
 
 test("CSV import preview and export retain income and expenses", async ({
@@ -230,7 +229,7 @@ test("Premium has no trial and requires login before purchasing or restoring", a
     .getByRole("button", { name: "Explore Penny Premium", exact: true })
     .click();
   await expect(
-    page.getByText("Google Play subscription · No trial · Cancel anytime"),
+    page.getByText("Renews monthly until canceled in Google Play · No trial"),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Sign in to get Premium", exact: true })

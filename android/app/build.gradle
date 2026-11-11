@@ -1,5 +1,11 @@
 apply plugin: 'com.android.application'
 
+def pennySigningFile = rootProject.file('upload-signing.properties')
+def pennySigning = new Properties()
+if (pennySigningFile.exists()) {
+    pennySigningFile.withInputStream { pennySigning.load(it) }
+}
+
 android {
     namespace = "app.penny.expenses"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +22,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (pennySigningFile.exists()) {
+            release {
+                storeFile rootProject.file(pennySigning.getProperty('storeFile'))
+                storePassword pennySigning.getProperty('storePassword')
+                keyAlias pennySigning.getProperty('keyAlias')
+                keyPassword pennySigning.getProperty('keyPassword')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (pennySigningFile.exists()) signingConfig signingConfigs.release
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', 'proguard-penny.pro'
         }

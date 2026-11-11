@@ -7,7 +7,7 @@ You can delete your Penny account and its associated data at any time, without a
 
 1. Open Penny and go to **Profile → Delete account & data**.
 2. Read the warning, type **DELETE**, and confirm.
-3. Penny removes the signed-in account and its cloud ledger, membership and code-redemption records, and this device’s saved ledger.
+3. Penny removes your Penny account record, cloud ledger, membership and code-redemption records, and this device’s saved ledger. A sign-in identity shared with other apps may remain so those apps are not affected.
 
 If you cannot open the app, email **rzstudios.dev@gmail.com** with the subject **Penny account deletion request** from the email associated with your Penny account. Do not send passwords, OTP codes or payment-card details. We will verify account ownership and process the request, or contact you if we need more information.
 

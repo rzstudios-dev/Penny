@@ -36,7 +36,7 @@ The tests include an isolated in-memory PostgreSQL database for row-level securi
 
 ## Backend and release
 
-The target Supabase project is `vcfalijtdakuyyfbdghy`. Database objects are isolated with `penny_` names and a `penny_private` schema, so this project can also host other apps. SQL migrations live in [supabase/migrations](supabase/migrations); Edge Functions use `penny-` slugs. Apply these only to the intended project after checking its existing schema. Production needs the project publishable key, custom SMTP and OTP templates, Google OAuth, deployed functions, Google Play subscription and a signed Android App Bundle.
+The target Supabase project is `vcfalijtdakuyyfbdghy`, which also hosts another app. Database objects are isolated with `penny_` names and a `penny_private` schema. The four migrations in [supabase/migrations](supabase/migrations) and Penny's four Edge Functions are deployed. The local release build now produces a signed Android App Bundle using an ignored upload key. Public launch still needs live authentication and billing configuration, Play Console declarations, and a signed test-track run.
 
 [SETUP.md](SETUP.md) has the release procedure and remaining live-service checks. The published [Privacy Policy](https://sites.google.com/view/penny-rzstudios/privacy-policy), [Terms and Conditions](https://sites.google.com/view/penny-rzstudios/terms-conditions), and [Account Deletion](https://sites.google.com/view/penny-rzstudios/account-deletion) pages are linked from the app. [Homepage copy](legal/site-homepage.md) is ready for the site's Home page.
 

@@ -1564,6 +1564,12 @@ function PennyView(p: ViewProps) {
                   : "your saved Penny ledger on this device"}
                 . Export a backup first if you want to keep anything.
               </p>
+              {user && (
+                <p className="muted">
+                  Your sign-in identity may also serve other apps and is not removed
+                  from those apps.
+                </p>
+              )}
               <div className="notice">
                 <Icon name="info" />
                 <p>

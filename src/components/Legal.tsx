@@ -103,19 +103,21 @@ export default function Legal({
             are not uploaded. Imported transactions join your ledger and are
             synced only if you explicitly enable Cloud sync. Exports are stored
             or shared only where you choose. Local reminders require
-            notification permission and follow your chosen frequency. “Never”
-            cancels budget and Premium notifications. A separate Weekly sign-in
-            reminder setting controls the short backup invitation sent when you
-            are signed out. No transaction amounts appear in lock-screen
+            notification permission and follow your chosen frequency. The
+            budget, monthly Premium invitation and weekly sign-in reminder
+            each have separate controls. The sign-in reminder is sent only
+            while signed out. No transaction amounts appear in lock-screen
             reminder text.
           </p>
           <h3>Retention, deletion & your choices</h3>
           <p>
             Records remain until you delete them or your account. You can export
             transactions and a full backup for free in Settings. “Delete account
-            & all data” removes your cloud ledger, account, entitlement records
-            and this device’s saved ledger. Other devices can retain offline
-            copies until you clear them or uninstall the app. Provider backups
+            & all data” removes your Penny account record, cloud ledger,
+            membership records and this device’s saved ledger. The shared
+            sign-in identity can remain if it is used by other apps in the same
+            service. Other devices can retain offline copies until you clear
+            them or uninstall the app. Provider backups
             may retain deleted records temporarily under provider retention
             policies. Deletion does not cancel a Google Play subscription;
             cancel it in Google Play first. You may request access, correction
@@ -245,7 +247,7 @@ export default function Legal({
             <li><strong>Delete in Penny</strong><span>Open Profile → Delete account & data, then type DELETE to confirm. No subscription is needed.</span></li>
           </ol>
           <p className="deletion-guide-note">
-            This removes your account, transactions, envelope and wallet names, settings, and membership record. Clear offline copies on other devices too. Temporary service backups and Google’s payment records may remain under those providers’ policies.
+            This removes your Penny account record, cloud transactions, envelope and wallet names, settings, and membership record. A shared sign-in identity used by other apps can remain. Clear offline copies on other devices too. Temporary service backups and Google’s payment records may remain under those providers’ policies.
           </p>
           {onDelete && (
             <button className="button danger" onClick={onDelete}>

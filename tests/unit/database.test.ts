@@ -4,7 +4,8 @@ import fs from "node:fs/promises";
 import { emptyLedger, addWallet } from "../../src/lib/model";
 
 const alice = "11111111-1111-4111-8111-111111111111",
-  bob = "22222222-2222-4222-8222-222222222222";
+  bob = "22222222-2222-4222-8222-222222222222",
+  charlie = "33333333-3333-4333-8333-333333333333";
 let db: PGlite;
 beforeAll(async () => {
   db = new PGlite();
@@ -229,6 +230,39 @@ describe("Separate Penny database security (in-memory PostgreSQL; no connections
         ]),
       ).rejects.toThrow(/does not belong/);
     });
+  });
+  it("deletes only Penny data while preserving a shared login and another app", async () => {
+    await db.query("insert into auth.users(id) values($1)", [charlie]);
+    await db.exec("create table public.other_app_records(user_id uuid primary key references auth.users(id), label text not null)");
+    await db.query("insert into public.other_app_records values($1, 'Keep me')", [charlie]);
+    await asUser(charlie, async () => {
+      await db.query("insert into public.penny_accounts(user_id) values($1)", [charlie]);
+      await db.query("select public.penny_save_ledger($1::jsonb, 0)", [
+        JSON.stringify(fixtureLedger()),
+      ]);
+      await expect(
+        db.query("delete from public.penny_accounts where user_id = $1", [charlie]),
+      ).rejects.toThrow(/permission denied/);
+    });
+    await db.exec("set role service_role");
+    try {
+      await db.query(
+        "select public.penny_store_play_purchase('charlie-token', $1, 'penny_premium', now() + interval '1 month', 'SUBSCRIPTION_STATE_ACTIVE')",
+        [charlie],
+      );
+      await db.query("select public.penny_consume_premium_code_attempt($1)", [charlie]);
+      await db.query("delete from public.penny_accounts where user_id = $1", [charlie]);
+    } finally {
+      await db.exec("reset role");
+    }
+    for (const table of ["penny_accounts", "penny_ledgers", "penny_entitlements"]) {
+      expect((await db.query(`select 1 from public.${table} where user_id = $1`, [charlie])).rows).toHaveLength(0);
+    }
+    for (const table of ["penny_play_purchases", "penny_premium_code_attempts"]) {
+      expect((await db.query(`select 1 from penny_private.${table} where user_id = $1`, [charlie])).rows).toHaveLength(0);
+    }
+    expect((await db.query("select 1 from auth.users where id = $1", [charlie])).rows).toHaveLength(1);
+    expect((await db.query("select label from public.other_app_records where user_id = $1", [charlie])).rows).toEqual([{ label: "Keep me" }]);
   });
   it("auth-user deletion cascades to the financial ledger", async () => {
     await db.query("delete from auth.users where id = $1", [alice]);

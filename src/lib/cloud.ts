@@ -34,6 +34,12 @@ export const requireCloud = () => {
     );
   return supabase;
 };
+export async function registerPennyAccount(userId: string) {
+  const { error } = await requireCloud()
+    .from("penny_accounts")
+    .insert({ user_id: userId });
+  if (error && error.code !== "23505") throw error;
+}
 export async function googleLogin() {
   const client = requireCloud();
   const native = Capacitor.isNativePlatform();

@@ -16,7 +16,7 @@ For Premium, Google Play processes payment. Penny receives the product identifie
 
 CSV or spreadsheet imports are read on your device. The original file is not uploaded. Imported entries become part of your ledger and are uploaded only if you enable cloud sync. Exports go only where you choose to save or share them.
 
-If enabled, Penny schedules short budget and tip reminders on your device according to your selected frequency. A separate weekly reminder can invite signed-out users to sign in for optional backup. You can turn these off in the app or in Android settings. Reminder text does not include transaction amounts.
+If enabled, Penny schedules short budget reminders on your device according to your selected frequency. Separate controls govern a monthly Premium invitation and a weekly reminder inviting signed-out users to sign in for optional backup. Opening tips appear in the app rather than as system notifications. You can turn each reminder off in the app or disable notifications in Android settings. Reminder text does not include transaction amounts.
 
 ## Why we use this information
 
@@ -30,7 +30,7 @@ Financial records are shared with Supabase only when cloud sync is enabled. Supa
 
 You can use Penny locally without an online account, turn cloud sync and reminders on or off, edit or delete records, and export transactions or a full backup. Local data remains until you delete it, clear the app’s storage or uninstall the app. Cloud data and account information remain until you delete your account, subject to temporary provider backups and records that providers or law require them to keep.
 
-In Penny, choose **Profile → Delete account & data** and type **DELETE** to remove your Penny account, cloud ledger, membership record and this device’s local ledger. Offline copies on other devices must be removed there. Deleting the Penny account does not cancel a Google Play subscription; cancel it in Google Play first. You may also request account and data deletion at **rzstudios.dev@gmail.com**. We will verify ownership before processing the request. See our separate account and data deletion page.
+In Penny, choose **Profile → Delete account & data** and type **DELETE** to remove your Penny account record, cloud ledger, membership record and this device’s local ledger. The Supabase sign-in identity is shared with other apps operated in the same project and may remain so those apps are not affected. Offline copies on other devices must be removed there. Deleting the Penny account does not cancel a Google Play subscription; cancel it in Google Play first. You may also request account and data deletion at **rzstudios.dev@gmail.com**. We will verify ownership before processing the request. See our separate account and data deletion page.
 
 You can contact us at **rzstudios.dev@gmail.com** to request access, correction or deletion, or to ask a privacy question. Rights that apply under your local law remain available to you.
 

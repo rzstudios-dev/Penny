@@ -127,7 +127,7 @@ export default function Premium({
                   : "Sign in to get Premium"}
               <Icon name="arrow" size={19} />
             </button>
-            <p className="premium-offer-note">Google Play subscription · No trial · Cancel anytime</p>
+            <p className="premium-offer-note">Renews monthly until canceled in Google Play · No trial</p>
           </>
         )}
       </div>

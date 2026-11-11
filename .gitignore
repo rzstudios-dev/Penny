@@ -11,6 +11,7 @@ android/local.properties
 android/**/build/
 *.jks
 *.keystore
+android/upload-signing.properties
 test-results/
 playwright-report/
 *.service-account.json

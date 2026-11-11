@@ -20,6 +20,7 @@ import {
   saveCloud,
   getEntitlement,
   listenForDeepLinks,
+  registerPennyAccount,
 } from "./cloud";
 import { configureNotifications } from "./notifications";
 import { restorePurchases } from "./billing";
@@ -119,6 +120,17 @@ export function usePenny() {
     );
     void refreshPremium();
   }, [user?.id, authReady, refreshPremium]);
+  useEffect(() => {
+    if (!user) return;
+    const register = () => {
+      void registerPennyAccount(user.id).catch(() => {
+        // Local use remains available offline; retry when the app reconnects.
+      });
+    };
+    register();
+    window.addEventListener("online", register);
+    return () => window.removeEventListener("online", register);
+  }, [user?.id]);
   useEffect(() => {
     const checkScheduledIncome = () => {
       setSnapshot((s) => {
