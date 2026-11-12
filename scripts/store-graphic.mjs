@@ -19,6 +19,7 @@ const artwork = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1024
 </svg>`);
 await sharp(artwork)
   .composite([{ input: bunny, left: 624, top: 106 }])
+  .removeAlpha()
   .png()
   .toFile('release-assets/feature-graphic.png');
 console.log('1024x500 Play feature graphic created.');
