@@ -2,16 +2,19 @@
 
 This is the release gate for `app.penny.expenses`. Internal testing is a small, private Play track. The beta for this launch is **closed testing**; open testing is available only after Play grants production access to this developer account.
 
-## Before inviting internal testers
+## Start the internal test
 
-- Complete and verify the Play reviewer sign-in entry, content rating, target audience and Data safety declarations against the installed build and published policies.
-- Finish the Google Payments merchant account, then create and activate `penny_premium` with a paid monthly base plan at the intended US$5 price and **no trial or introductory offer**. Configure the Android Publisher API service account only in Supabase Edge Function secrets. Never put it in the app bundle or Git.
+Google permits internal testing before the full app setup is complete. The signed version 1 bundle is already saved as an internal release **draft**. Back up the Android upload key, add trusted Android users on the Internal testing Testers tab, preview and roll out the draft, then share its Play opt-in link. Start with local-first flows even if live sign-in or billing is still being configured. The internal track does not count toward the 14-day closed-test requirement.
+
+## Complete for full internal sign-in and billing tests
+
 - Verify Supabase custom SMTP delivers both new-user and returning-user codes. Confirm the Google provider, new-user signup setting, and Google OAuth audience. Add internal test Google accounts as OAuth test users while the consent screen is in Testing.
-- Back up the Android upload key and verify the bundle's package, version code and signature. The current version 1 bundle is already saved as an internal release **draft**; it has not been rolled out.
+- Finish the Google Payments merchant account, then create and activate `penny_premium` with a paid monthly base plan at the intended US$5 price and **no trial or introductory offer**. Configure the Android Publisher API service account only in Supabase Edge Function secrets. Never put it in the app bundle or Git.
+- Add a Play **license tester** before testing the subscription so Google offers test payment methods. Internal testers who are not license testers can be charged for in-app purchases.
 
 ## Internal test: install from Play
 
-Add a small group of trusted Android users to Internal testing, roll out the draft, and have them install through its Play opt-in link. Use a Play **license tester** for subscription purchases so the test purchase does not charge a normal tester. Record the installed version and Android version for every result. Do not use a sideloaded build to sign off Play Billing.
+Have testers install through the Play opt-in link. Record the installed version and Android version for every result. Do not use a sideloaded build to sign off Play Billing.
 
 Must-pass checks on the Play-installed app:
 
@@ -29,7 +32,7 @@ Fix any release-blocking result and upload a new bundle with a higher version co
 
 ## Closed beta and production gate
 
-Complete Play's app setup, create a Closed testing track, and add at least 12 reachable testers. Each must opt in and remain opted in continuously for at least 14 days. Collect feedback and resolve significant defects during the period. Internal testing alone does **not** satisfy this production-access requirement. After the closed test, apply for production access in Play Console and answer its testing and readiness questions. Google may require more testing. Only after approval should the final build, listing, country availability, pricing, legal pages and declarations be reviewed for production rollout.
+Complete Play's app setup, including reviewer sign-in, content rating, target audience and Data safety declarations. Upload the refreshed store images. Create a Closed testing track and add at least 12 reachable testers. Testers moving from Internal must opt out of that track before joining Closed. Each must opt in to Closed and remain opted in continuously for at least 14 days. Collect feedback and resolve significant defects during the period. Internal testing alone does **not** satisfy this production-access requirement. After the closed test, apply for production access in Play Console and answer its testing and readiness questions. Google may require more testing. Only after approval should the final build, listing, country availability, pricing, legal pages and declarations be reviewed for production rollout.
 
 For worldwide launch, obtain a region-by-region privacy, consumer and tax review before enabling every country. A passing test suite does not establish legal compliance everywhere.
 
