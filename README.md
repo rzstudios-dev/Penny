@@ -8,7 +8,7 @@ Penny is a warm, compact expense tracker for Android and the web. It uses **wall
 
 - Wallets with their own currencies, envelope budgets and monthly progress; quick expense and income entry, saved titles, optional notes and recurring income.
 - Transactions, basic reports, CSV/Excel import, CSV and full backup export, date and decimal preferences, local reminders and optional spending tips.
-- Email OTP and Google sign-in. An email address is automatically registered when first verified.
+- Email OTP, returning-user password sign-in, and Google sign-in flows. An email address is automatically registered when first verified. Google OAuth and production email delivery still require provider setup.
 - Free plan: one wallet, 10 envelopes and 16 icons. Premium: unlimited wallets and envelopes, 40 icons and advanced reports.
 - Google Play monthly subscription integration, purchase verification, restore, and a server-only lifetime Premium code. No trial is configured.
 - In-app privacy, terms and account-deletion screens, with [Google Sites copy](legal/) for public pages.
@@ -32,13 +32,13 @@ npm run android:sync
 npm run release:check
 ```
 
-The tests include an isolated in-memory PostgreSQL database for row-level security and ledger validation. They do not prove that a hosted project is configured. Browser flows can be run with `npm run test:e2e` while the development server is running.
+The tests include an isolated in-memory PostgreSQL database for row-level security and ledger validation. They do not prove that a hosted project is configured. Browser flows can be run with `npm run test:e2e` while the development server is running. If this Windows environment cannot reach loopback, set `PENNY_E2E_BASE_URL` to the reachable local network URL before running the suite.
 
 ## Backend and release
 
 The target Supabase project is `vcfalijtdakuyyfbdghy`, which also hosts another app. Database objects are isolated with `penny_` names and a `penny_private` schema. The four migrations in [supabase/migrations](supabase/migrations) and Penny's four Edge Functions are deployed. The local release build now produces a signed Android App Bundle using an ignored upload key. Public launch still needs live authentication and billing configuration, Play Console declarations, and a signed test-track run.
 
-[SETUP.md](SETUP.md) has the release procedure and remaining live-service checks. The published [Privacy Policy](https://sites.google.com/view/penny-rzstudios/privacy-policy), [Terms and Conditions](https://sites.google.com/view/penny-rzstudios/terms-conditions), and [Account Deletion](https://sites.google.com/view/penny-rzstudios/account-deletion) pages are linked from the app. [Homepage copy](legal/site-homepage.md) is ready for the site's Home page.
+[SETUP.md](SETUP.md) and [release status](docs/release-status.md) track the remaining live-service and Play Console gates. The published [Privacy Policy](https://sites.google.com/view/penny-rzstudios/privacy-policy), [Terms and Conditions](https://sites.google.com/view/penny-rzstudios/terms-conditions), and [Account Deletion](https://sites.google.com/view/penny-rzstudios/account-deletion) pages are linked from the app. [Longer homepage copy](legal/site-homepage.md) is available if the publisher wants to expand the current “Coming soon” page.
 
 ## Security and licensing notes
 

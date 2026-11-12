@@ -239,6 +239,15 @@ test("Premium has no trial and requires login before purchasing or restoring", a
     page.getByRole("button", { name: "Continue with Google" }),
   ).toBeVisible();
   await expect(page.getByLabel("Email address")).toBeVisible();
+  await page.getByRole("button", { name: "Have a password? Sign in" }).click();
+  await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
+  await page.getByLabel("Email address").fill("reviewer@example.com");
+  await page.getByLabel("Password", { exact: true }).fill("reviewer-password");
+  await expect(page.getByRole("button", { name: "Sign in with password" })).toBeDisabled();
+  await page.getByRole("checkbox", { name: /I agree to the Terms/ }).check();
+  await expect(page.getByRole("button", { name: "Sign in with password" })).toBeEnabled();
+  await page.getByRole("button", { name: "Use an email code instead" }).click();
+  await expect(page.getByLabel("Password", { exact: true })).toHaveCount(0);
   await expect(
     page.getByText("Your ledger stays on this device.", { exact: false }),
   ).toBeVisible();

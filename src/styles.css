@@ -1770,6 +1770,9 @@ label small {
 .auth-intro {
   text-align: center;
 }
+.auth-method-switch {
+  width: 100%;
+}
 .auth-intro > img {
   width: 106px;
   height: 116px;

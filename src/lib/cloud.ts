@@ -76,6 +76,14 @@ export async function verifyCode(email: string, token: string) {
   if (error) throw error;
   if (!data.session?.user) throw new Error("Sign-in did not finish. Please try again.");
 }
+export async function signInWithPassword(email: string, password: string) {
+  const { data, error } = await requireCloud().auth.signInWithPassword({
+    email: email.trim().toLowerCase(),
+    password,
+  });
+  if (error) throw error;
+  if (!data.session?.user) throw new Error("Sign-in did not finish. Please try again.");
+}
 export async function listenForDeepLinks() {
   if (!Capacitor.isNativePlatform() || !supabase) return () => {};
   const handle = async (url: string) => {
