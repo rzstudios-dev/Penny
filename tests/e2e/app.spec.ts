@@ -222,6 +222,29 @@ test("optional PIN locks reopening and protects transaction deletion", async ({ 
   await expect(page.getByText("Coffee", { exact: true })).toHaveCount(0);
 });
 
+test("balance changes are recorded and a sole wallet can be deleted", async ({ page }) => {
+  await page.goto("/");
+  const tip = page.getByRole("button", { name: "A little noted ♡" });
+  if (await tip.isVisible()) await tip.click();
+  await page.locator(".sidebar nav").getByRole("button", { name: "Wallets" }).click();
+  await page.getByRole("button", { name: "Edit Everyday wallet" }).click();
+  await page.getByLabel("Set current balance").fill("75");
+  await page.getByRole("button", { name: "Record balance adjustment" }).click();
+  await expect(page.getByLabel("Set current balance")).toHaveValue("");
+  await page.getByRole("button", { name: "Close dialog" }).click();
+  await page.locator(".sidebar nav").getByRole("button", { name: "Transactions" }).click();
+  await expect(page.getByText("Balance adjustment", { exact: true }).first()).toBeVisible();
+  await page.locator(".sidebar nav").getByRole("button", { name: "Wallets" }).click();
+  await page.getByRole("button", { name: "Edit Everyday wallet" }).click();
+  page.once("dialog", (dialog) => void dialog.accept());
+  await page.getByRole("button", { name: "Delete wallet" }).click();
+  await expect(page.getByLabel("Wallet name")).toBeVisible();
+  await page.getByLabel("Wallet name").fill("Fresh start");
+  await page.getByRole("button", { name: "Create my first wallet" }).click();
+  await expect(page.locator(".budget-overview")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Edit Food & drinks budget" })).toHaveCount(0);
+});
+
 test("Premium has no trial and requires login before purchasing or restoring", async ({
   page,
 }) => {
