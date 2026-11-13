@@ -92,7 +92,7 @@ export default function Legal({
             own policies.
           </p>
           <p>
-            Redeeming a Premium code stores lifetime membership status and its
+            Redeeming a Premium code stores its membership duration and
             activation date against your signed-in account. We also store an
             attempt counter and time window to limit repeated guesses. Your
             financial records stay local unless you enable cloud sync.
@@ -104,7 +104,7 @@ export default function Legal({
             synced only if you explicitly enable Cloud sync. Exports are stored
             or shared only where you choose. Local reminders require
             notification permission and follow your chosen frequency. The
-            budget, monthly Premium invitation and weekly sign-in reminder
+            budget, monthly Premium invitation and monthly sign-in reminder for the first two months
             each have separate controls. The sign-in reminder is sent only
             while signed out. No transaction amounts appear in lock-screen
             reminder text.
@@ -114,7 +114,10 @@ export default function Legal({
             Records remain until you delete them or your account. You can export
             transactions and a full backup for free in Settings. “Delete account
             & all data” removes your Penny account record, cloud ledger,
-            membership records and this device’s saved ledger. The shared
+            membership records and this device’s saved ledger.
+            “Delete Penny account · keep device data” choice removes your Penny
+            account and cloud records, signs you out and leaves this device’s
+            ledger here with cloud sync off. The shared
             sign-in identity can remain if it is used by other apps in the same
             service. Other devices can retain offline copies until you clear
             them or uninstall the app. Provider backups
@@ -179,12 +182,11 @@ export default function Legal({
           </p>
           <h3>Cancellation, refunds & restoration</h3>
           <p>
-            A valid promotional code unlocks lifetime Premium for your signed-in
-            Penny account for the lifetime of the Penny service, without a
-            recurring charge. It does not cancel an existing Google Play
-            subscription. Deleting your account also deletes its membership.
-            Code availability may change; an already redeemed lifetime grant
-            remains attached to that account.
+            A valid promotional code unlocks the stated Premium period for your
+            signed-in Penny account without a recurring charge. Some codes
+            grant one year; lifetime codes last for the lifetime of the Penny
+            service. A code does not cancel an existing Google Play subscription.
+            Deleting your account also deletes its membership.
           </p>
           <p>
             Manage or cancel your subscription in Google Play’s Payments &
@@ -230,7 +232,7 @@ export default function Legal({
             of little purchases, plan for bigger things, and give every penny a
             home.
           </p>
-          <p>Version 1.0.0 · No ads · Your data stays yours.</p>
+          <p>Version 1.0.1 · Your data stays yours.</p>
           <p>Made for a gentler relationship with money.</p>
         </div>
       )}

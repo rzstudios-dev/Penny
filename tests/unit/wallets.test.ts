@@ -39,12 +39,12 @@ function fixture() {
   return result;
 }
 describe("Wallet currencies and budgets", () => {
-  it("starts without an implicit wallet, with calculator and tip popups off", () => {
+  it("starts without an implicit wallet, with calculator off and weekly tips", () => {
     const l = emptyLedger();
     expect(l.accounts).toEqual([]);
     expect(l.categories).toEqual([]);
     expect(l.settings.calculator).toBe(false);
-    expect(l.settings.tipFrequency).toBe("never");
+    expect(l.settings.tipFrequency).toBe("weekly");
     expect(l.settings.cloudSync).toBe(false);
   });
   it("upgrades old wallets with their ledger currency", () => {

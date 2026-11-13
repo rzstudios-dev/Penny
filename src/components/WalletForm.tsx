@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { accountBalance, dateKey, type Transaction } from "../lib/model";
 import {
   calculate,
   currencies,
@@ -10,18 +11,21 @@ import {
 } from "../lib/model";
 import Select from "./Select";
 import Icon from "./Icon";
+import { PinSetup } from "./Security";
 
 export default function WalletForm({
   ledger,
   initial,
   onSave,
   onDelete,
+  onAdjustment,
   onboarding = false,
 }: {
   ledger: Ledger;
   initial?: Account;
   onSave: (wallet: Account) => void;
   onDelete?: () => void;
+  onAdjustment?: (transaction: Transaction) => void;
   onboarding?: boolean;
 }) {
   const [name, setName] = useState(initial?.name || ""),
@@ -37,6 +41,7 @@ export default function WalletForm({
         : "",
     ),
     [error, setError] = useState("");
+  const [currentAmount, setCurrentAmount] = useState("");
   const hasHistory = ledger.transactions.some(
     (t) => t.accountId === initial?.id,
   );
@@ -50,10 +55,10 @@ export default function WalletForm({
         currency,
         icon: initial?.icon || "wallet",
         incomeSchedules: initial?.incomeSchedules || [],
-        openingBalance:
+        openingBalance: initial?.openingBalance ?? (
           amount && Number(amount.replace(",", ".")) !== 0
             ? calculate(amount, ledger.settings.decimalMark)
-            : 0,
+            : 0),
       });
     } catch (caught) {
       setError((caught as Error).message);
@@ -91,7 +96,7 @@ export default function WalletForm({
           </small>
         )}
       </label>
-      <label>
+      {!initial && <label>
         Starting balance · {currency}
         <input
           value={amount}
@@ -100,7 +105,24 @@ export default function WalletForm({
           onChange={(e) => setAmount(e.target.value)}
         />
         <small>Optional. Your balance before adding your first entry.</small>
-      </label>
+      </label>}
+      {initial && onAdjustment && <label>
+        Set current balance · {currency}
+        <input value={currentAmount} inputMode="decimal" placeholder="Enter a new balance" onChange={(event) => setCurrentAmount(event.target.value)} />
+        <small>The change appears as an adjustment in Transactions.</small>
+        <button type="button" className="button secondary full" onClick={() => {
+          try {
+            const normalized = currentAmount.trim().replace(ledger.settings.decimalMark, ".");
+            if (!/^-?\d+(?:\.\d{0,4})?$/.test(normalized)) throw new Error("Enter a valid balance.");
+            const target = Math.round(Number(normalized) * SCALE);
+            if (!Number.isSafeInteger(target) || Math.abs(target) > 1_000_000_000 * SCALE) throw new Error("That balance is too large.");
+            const difference = target - accountBalance(ledger, initial.id);
+            if (!difference) throw new Error("This is already your current balance.");
+            onAdjustment({ id: id(), kind: difference > 0 ? "income" : "expense", amount: Math.abs(difference), categoryId: "", accountId: initial.id, note: "Balance adjustment", date: dateKey(), createdAt: new Date().toISOString(), expenseType: "adjustment" });
+            setCurrentAmount("");
+          } catch (caught) { setError((caught as Error).message); }
+        }}>Record balance adjustment</button>
+      </label>}
       {error && (
         <p role="alert" className="form-error">
           {error}
@@ -115,16 +137,10 @@ export default function WalletForm({
           <button
             type="button"
             className="button danger full"
-            disabled={hasHistory}
-            onClick={onDelete}
+            onClick={() => { if (window.confirm(`Delete ${initial.name} and all its transactions and envelopes? This cannot be undone.`)) onDelete(); }}
           >
-            Delete empty wallet
+            Delete wallet
           </button>
-          {hasHistory && (
-            <small>
-              Move or delete this wallet’s entries before removing it.
-            </small>
-          )}
         </>
       )}
     </form>
@@ -139,13 +155,14 @@ export function WalletOnboarding({
   onSave: (wallet: Account) => void;
 }) {
   const [step, setStep] = useState(() => {
-    try { return localStorage.getItem("penny:onboarding-seen") ? 2 : 0; }
+    try { return localStorage.getItem("penny:onboarding-seen") ? 3 : 0; }
     catch { return 0; }
   });
   const finishIntro = () => {
     try { localStorage.setItem("penny:onboarding-seen", "1"); } catch { /* Device storage may be unavailable. */ }
-    setStep(2);
+    setStep(3);
   };
+  if (step === 2) return <main className="wallet-onboarding onboarding-guide"><div className="onboarding-guide-top"><span className="onboarding-brand">penny</span><button className="text-button" onClick={finishIntro}>Skip</button></div><div className="onboarding-guide-copy"><span className="eyebrow">A little privacy</span><h1>Keep Penny yours.</h1><p>Set a PIN to lock Penny and protect transaction deletion. On supported phones, you can turn on fingerprint or face unlock later in Profile.</p></div><PinSetup onDone={finishIntro} /><button className="button secondary full" onClick={finishIntro}>Maybe later</button></main>;
   if (step < 2) return (
     <main className="wallet-onboarding onboarding-guide">
       <div className="onboarding-guide-top"><span className="onboarding-brand">penny</span><button className="text-button" onClick={finishIntro}>Skip</button></div>
@@ -155,7 +172,7 @@ export function WalletOnboarding({
         <h1>{step === 0 ? "Meet Penny, your cozy money corner." : "A place for every little goal."}</h1>
         <p>{step === 0 ? "Track what comes in and goes out, one quick entry at a time." : "Create a wallet, then add envelopes with budgets that refresh each month. Your data stays on this device unless you turn on cloud sync."}</p>
       </div>
-      <div className="onboarding-guide-footer"><div className="onboarding-dots" aria-label={`Step ${step + 1} of 2`}><span className={step === 0 ? "active" : ""} /><span className={step === 1 ? "active" : ""} /></div><button className="button primary full" onClick={() => step === 0 ? setStep(1) : finishIntro()}>{step === 0 ? "Next" : "Create my wallet"} <Icon name="arrow" size={18} /></button></div>
+      <div className="onboarding-guide-footer"><div className="onboarding-dots" aria-label={`Step ${step + 1} of 3`}><span className={step === 0 ? "active" : ""} /><span className={step === 1 ? "active" : ""} /><span /></div><button className="button primary full" onClick={() => setStep(step + 1)}>{step === 0 ? "Next" : "Next"} <Icon name="arrow" size={18} /></button></div>
     </main>
   );
   return (

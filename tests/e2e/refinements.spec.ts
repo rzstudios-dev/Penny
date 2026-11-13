@@ -17,7 +17,9 @@ test("first-open guide is short, skippable, and shown only once", async ({
   await expect(
     page.getByRole("heading", { name: "A place for every little goal." }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Create my wallet" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByRole("heading", { name: "Keep Penny yours." })).toBeVisible();
+  await page.getByRole("button", { name: "Maybe later" }).click();
   await expect(page.getByLabel("Wallet name")).toBeVisible();
   await page.reload();
   await expect(page.getByLabel("Wallet name")).toBeVisible();
@@ -33,6 +35,8 @@ async function setup(page: import("@playwright/test").Page) {
   await page.getByRole("option", { name: /^MYR ·/ }).click();
   await page.getByRole("button", { name: "Create my first wallet" }).click();
   await expect(page.locator(".budget-overview")).toBeVisible();
+  const tip = page.getByRole("button", { name: "A little noted ♡" });
+  if (await tip.isVisible()) await tip.click();
 }
 test("wallet onboarding, currency and compact search layout", async ({
   page,
@@ -272,21 +276,6 @@ test("Reports tips follow the selected month and cycle when there are insights",
       .locator(".reports-tips-viewport")
       .evaluate((element) => element.scrollLeft),
   ).toBeGreaterThan(0);
-  await page
-    .locator(".mobile-nav")
-    .getByRole("button", { name: "Profile" })
-    .click();
-  await page
-    .getByRole("button", { name: "Refresh this month’s progress" })
-    .click();
-  await page
-    .getByRole("button", { name: "Refresh progress", exact: true })
-    .click();
-  await page.getByRole("button", { name: "Yes, refresh progress" }).click();
-  await page
-    .locator(".mobile-nav")
-    .getByRole("button", { name: "Reports" })
-    .click();
   await expect(card.locator(".reports-tip-slide").first()).toContainText(
     "Food & drinks",
   );
@@ -335,7 +324,7 @@ test("Wallet income is saved once and Profile stays compact", async ({
     page
       .locator(".profile-menu")
       .getByRole("button", { name: /^Notifications/ }),
-  ).toHaveCount(0);
+  ).toHaveCount(1);
   await page
     .locator(".mobile-nav")
     .getByRole("button", { name: "Wallets" })
@@ -429,7 +418,7 @@ test("a wallet can add monthly and yearly fixed income on chosen dates", async (
   );
   await expect(page.getByText("Yearly income", { exact: true })).toHaveCount(1);
 });
-test("daily tips live in Reports and can be read from the bell", async ({
+test("daily tips live in Reports and reminder controls live in Profile", async ({
   page,
 }) => {
   await setup(page);
@@ -441,8 +430,8 @@ test("daily tips live in Reports and can be read from the bell", async ({
   await expect(
     page.locator(".reports-tips select, .reports-tips [role=combobox]"),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: /^Notifications/ }).click();
-  await page.getByRole("button", { name: "Reminder settings" }).click();
+  await page.locator(".mobile-nav").getByRole("button", { name: "Profile" }).click();
+  await page.getByRole("button", { name: "Notifications & tips" }).click();
   await page.getByRole("combobox", { name: "Tips when opening Penny" }).click();
   await page.getByRole("option", { name: "Daily" }).click();
   await page.reload();
@@ -453,24 +442,13 @@ test("daily tips live in Reports and can be read from the bell", async ({
   await page.reload();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator(".reports-tips")).toHaveCount(0);
-  await page.getByRole("button", { name: /^Notifications/ }).click();
-  await expect(
-    page.getByRole("region", { name: "Your notifications" }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Reminder settings" }).click();
+  await page.locator(".mobile-nav").getByRole("button", { name: "Profile" }).click();
+  await page.getByRole("button", { name: "Notifications & tips" }).click();
   await expect(
     page.getByRole("button", { name: "Save reminder preferences" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Back to previous page" }).click();
-  await expect(page.locator(".budget-overview")).toBeVisible();
-  await page
-    .locator(".mobile-nav")
-    .getByRole("button", { name: "Reports" })
-    .click();
-  await page.getByRole("button", { name: /^Notifications/ }).click();
-  await page.getByRole("button", { name: "Reminder settings" }).click();
-  await page.getByRole("button", { name: "Back to previous page" }).click();
-  await expect(page.locator(".reports-tips")).toBeVisible();
+  await page.getByRole("button", { name: "Back to profile" }).click();
+  await expect(page.getByRole("button", { name: "Notifications & tips" })).toBeVisible();
 });
 test("icon choices expand with a faded Premium preview; terms open a page", async ({
   page,

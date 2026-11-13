@@ -9,6 +9,8 @@ You can delete your Penny account and its associated data at any time, without a
 2. Read the warning, type **DELETE**, and confirm.
 3. Penny removes your Penny account record, cloud ledger, membership and code-redemption records, and this device’s saved ledger. A sign-in identity shared with other apps may remain so those apps are not affected.
 
+You can instead choose **Delete Penny account · keep device data**. This removes your Penny account and cloud records, signs you out, and turns off cloud sync while leaving the ledger on your current device. You can export a backup first for additional safety.
+
 If you cannot open the app, email **rzstudios.dev@gmail.com** with the subject **Penny account deletion request** from the email associated with your Penny account. Do not send passwords, OTP codes or payment-card details. We will verify account ownership and process the request, or contact you if we need more information.
 
 Export your records first if you want to keep a copy. Offline copies on other devices must be cleared on those devices. Temporary service backups and purchase records held by Google may remain under those providers’ retention policies or legal obligations.

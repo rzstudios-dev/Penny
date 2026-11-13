@@ -1,6 +1,7 @@
 import {
   formatCompactMoney,
   formatMoney,
+  accountBalance,
   type Category,
   type Ledger,
   type Transaction,
@@ -30,10 +31,13 @@ export default function CompactHome({
     };
   };
   const spent = transactions
-    .filter((t) => t.kind === "expense")
+    .filter((t) => t.kind === "expense" && t.expenseType !== "adjustment")
     .reduce((sum, t) => sum + t.amount, 0);
-  const budget = ledger.categories.reduce((sum, c) => sum + c.budget, 0);
-  const left = budget - spent;
+  const envelopeBudget = ledger.categories.reduce((sum, c) => sum + c.budget, 0);
+  const walletId = ledger.accounts[0]?.id;
+  const balance = accountBalance(ledger, walletId);
+  const budget = envelopeBudget || Math.max(0, balance + spent);
+  const left = envelopeBudget ? budget - spent : balance;
   const spentDisplay = summaryAmount(spent);
   const budgetDisplay = summaryAmount(budget);
   const leftDisplay = summaryAmount(left);

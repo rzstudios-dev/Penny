@@ -188,36 +188,38 @@ test("CSV import preview and export retain income and expenses", async ({
   expect(contents).toContain("25.7500");
 });
 
-test("manual budget reset retains transaction history", async ({ page }) => {
+test("manual budget reset is absent", async ({ page }) => {
   await page.goto("/");
-  await page
-    .getByRole("button", { name: "Add transaction", exact: true })
-    .click();
-  await page.getByRole("textbox", { name: "Amount", exact: true }).fill("12");
-  await page
-    .getByRole("textbox", { name: "Title", exact: true })
-    .fill("Before reset");
+  await page.locator(".sidebar nav").getByRole("button", { name: "Profile" }).click();
+  await expect(page.getByRole("button", { name: "Refresh this month’s progress" })).toHaveCount(0);
+});
+
+test("optional PIN locks reopening and protects transaction deletion", async ({ page }) => {
+  await page.goto("/");
+  const tip = page.getByRole("button", { name: "A little noted ♡" });
+  if (await tip.isVisible()) await tip.click();
+  await page.getByRole("button", { name: "Add transaction", exact: true }).click();
+  await page.getByRole("textbox", { name: "Amount", exact: true }).fill("7");
+  await page.getByRole("textbox", { name: "Title", exact: true }).fill("Coffee");
   await page.getByRole("button", { name: "Add expense", exact: true }).click();
   await page.locator(".sidebar nav").getByRole("button", { name: "Profile" }).click();
-  await page.getByRole("button", { name: "Refresh this month’s progress" }).click();
-  await page
-    .getByRole("button", { name: "Refresh progress", exact: true })
-    .click();
-  await expect(page.getByText("Your previous progress view cannot be recovered after this refresh.")).toBeVisible();
-  await page.getByRole("button", { name: "Yes, refresh progress" }).click();
-  await page
-    .locator(".sidebar nav")
-    .getByRole("button", { name: "Overview" })
-    .click();
-  await expect(page.locator(".budget-overview")).toContainText("$0.00");
-  await page
-    .locator(".sidebar nav")
-    .getByRole("button", { name: "Transactions" })
-    .click();
-  await page.getByRole("button", { name: "Transaction filters" }).click();
-  await page.getByRole("combobox", { name: "Date range" }).click();
-  await page.getByRole("option", { name: "All time", exact: true }).click();
-  await expect(page.getByText("Before reset", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "App lock" }).click();
+  await page.getByLabel("Create PIN").fill("123456");
+  await page.getByLabel("Repeat PIN").fill("123456");
+  await page.getByRole("button", { name: "Set PIN" }).click();
+  await expect(page.getByRole("button", { name: "Change PIN" })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Unlock Penny" })).toBeVisible();
+  await page.getByLabel("Penny PIN").fill("123456");
+  await page.getByRole("button", { name: "Unlock", exact: true }).click();
+  await page.locator(".sidebar nav").getByRole("button", { name: "Transactions" }).click();
+  await page.getByRole("button", { name: /Coffee/ }).click();
+  await page.getByRole("button", { name: "Delete transaction" }).click();
+  await expect(page.getByRole("heading", { name: "Confirm with Penny PIN" })).toBeVisible();
+  await page.getByLabel("Penny PIN").fill("123456");
+  page.once("dialog", (dialog) => void dialog.accept());
+  await page.getByRole("button", { name: "Unlock", exact: true }).click();
+  await expect(page.getByText("Coffee", { exact: true })).toHaveCount(0);
 });
 
 test("Premium has no trial and requires login before purchasing or restoring", async ({
@@ -239,15 +241,11 @@ test("Premium has no trial and requires login before purchasing or restoring", a
     page.getByRole("button", { name: "Continue with Google" }),
   ).toBeVisible();
   await expect(page.getByLabel("Email address")).toBeVisible();
-  await page.getByRole("button", { name: "Have a password? Sign in" }).click();
-  await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
   await page.getByLabel("Email address").fill("reviewer@example.com");
-  await page.getByLabel("Password", { exact: true }).fill("reviewer-password");
-  await expect(page.getByRole("button", { name: "Sign in with password" })).toBeDisabled();
-  await page.getByRole("checkbox", { name: /I agree to the Terms/ }).check();
-  await expect(page.getByRole("button", { name: "Sign in with password" })).toBeEnabled();
-  await page.getByRole("button", { name: "Use an email code instead" }).click();
   await expect(page.getByLabel("Password", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Email me a sign-in link" })).toBeDisabled();
+  await page.getByRole("checkbox", { name: /I agree to the Terms/ }).check();
+  await expect(page.getByRole("button", { name: "Email me a sign-in link" })).toBeEnabled();
   await expect(
     page.getByText("Your ledger stays on this device.", { exact: false }),
   ).toBeVisible();

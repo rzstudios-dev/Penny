@@ -16,7 +16,7 @@ The free plan includes one wallet, up to 10 envelopes, 16 icons, budgets, basic 
 
 Penny offers a monthly Premium subscription through Google Play, targeting **US$5 per month**. Your Google Play checkout displays the actual local price, any applicable taxes, the billing period and final offer terms before you confirm. There is **no free trial**. You must sign in before subscribing. The subscription renews automatically unless you cancel through Google Play before the next renewal. Cancelling generally preserves access for the rest of the paid period, subject to Google Play’s terms and applicable law. You can manage or cancel it in **Google Play → Payments & subscriptions → Subscriptions**. Uninstalling Penny or deleting your Penny account does not cancel the Google Play subscription.
 
-Eligible users can redeem a valid Penny code for lifetime Premium on their signed-in Penny account. This lasts for the lifetime of the Penny service. Code redemption does not cancel an existing Google Play subscription. If you delete the account, its code-based entitlement is also deleted.
+Eligible users can redeem a valid Penny code for Premium on their signed-in Penny account. A one-year code lasts one year from redemption; a lifetime code lasts for the lifetime of the Penny service. Code redemption does not cancel an existing Google Play subscription. If you delete the account, its code-based entitlement is also deleted.
 
 Refunds for Google Play purchases follow Google Play’s process and any mandatory consumer rights. The in-app restore option attempts to reconnect a verified Google Play subscription to your signed-in Penny account.
 

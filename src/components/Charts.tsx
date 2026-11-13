@@ -26,6 +26,12 @@ export const chartColors: Record<string, string> = {
   yellow: "#8B681E",
   blue: "#306D88",
   pink: "#9F4067",
+  coral: "#A34B43",
+  teal: "#2E7370",
+  plum: "#704D72",
+  olive: "#65713B",
+  clay: "#8D5941",
+  indigo: "#4C5A86",
 };
 export function Breakdown({
   ledger,
@@ -124,7 +130,7 @@ export function SpendingChart({
       amount: ledger.transactions
         .filter(
           (t) =>
-            t.kind === "expense" && t.date === key && inPeriod(t, start, end),
+            t.kind === "expense" && t.expenseType !== "adjustment" && t.date === key && inPeriod(t, start, end),
         )
         .reduce((s, t) => s + t.amount / SCALE, 0),
     };
@@ -198,10 +204,10 @@ export function TrendChart({ ledger }: { ledger: Ledger }) {
     return {
       month: month.toLocaleDateString("en", { month: "short" }),
       Income: tx
-        .filter((t) => t.kind === "income")
+        .filter((t) => t.kind === "income" && t.expenseType !== "adjustment")
         .reduce((s, t) => s + t.amount / SCALE, 0),
       Expenses: tx
-        .filter((t) => t.kind === "expense")
+        .filter((t) => t.kind === "expense" && t.expenseType !== "adjustment")
         .reduce((s, t) => s + t.amount / SCALE, 0),
     };
   });

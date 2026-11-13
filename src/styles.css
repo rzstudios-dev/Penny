@@ -263,11 +263,11 @@ strong {
   border-radius: 10px;
 }
 .button.danger {
-  background: #fae8e4;
-  color: #9d3a2c;
+  background: #ead0bb;
+  color: #633c2a;
 }
 .button.danger:hover {
-  background: #f4d9d3;
+  background: #dfbda3;
 }
 .sidebar-add {
   margin-top: 32px;
@@ -5557,6 +5557,44 @@ input::placeholder,
 }
 .premium-meta-row .premium-legal-links { align-items: flex-start; }
 .compact-home .budget-overview strong.negative { color: #a34435; }
+
+.entry-wallet-envelope { display: grid; gap: 12px; }
+.entry-wallet-envelope > label { width: 100%; }
+.color-picker { display: flex; flex-wrap: nowrap; overflow-x: auto; padding: 6px 3px 9px; scrollbar-width: thin; scroll-snap-type: x mandatory; }
+.color-picker > button { flex: 0 0 38px; scroll-snap-align: start; }
+.color-coral { background: #f3d2c8; color: #743f38; }
+.color-teal { background: #c7e4dc; color: #28534e; }
+.color-plum { background: #dfd0df; color: #513d55; }
+.color-olive { background: #dce1bb; color: #4d542a; }
+.color-clay { background: #e8d1be; color: #67452f; }
+.color-indigo { background: #d1d7e8; color: #37466b; }
+.color-picker > button.color-coral { background: #a95a50; }
+.color-picker > button.color-teal { background: #367c78; }
+.color-picker > button.color-plum { background: #795c7b; }
+.color-picker > button.color-olive { background: #778349; }
+.color-picker > button.color-clay { background: #9b664d; }
+.color-picker > button.color-indigo { background: #566b99; }
+.auth-email-actions { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.signed-in-email { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+.profile-account-line { display: flex; align-items: center; gap: 7px; margin: 0 0 9px; padding: 0 4px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.profile-pages .settings-page-header { gap: 10px; align-items: center; min-height: 38px; }
+.profile-pages .settings-page-header .icon-button { flex: 0 0 36px; }
+.profile-pages .settings-page-header h2 { margin: 0; line-height: 1.2; }
+.profile-pages { min-height: auto; }
+.transaction-row:disabled { cursor: default; opacity: 1; }
+.security-gate { min-height: 100dvh; background: var(--background, #f5e9db); display: grid; place-items: center; padding: 24px; }
+.security-gate-card { width: min(100%, 380px); padding: 28px; border-radius: 24px; background: #ead7c4; display: grid; gap: 14px; color: var(--ink); }
+.security-gate-card h1 { margin: 0; font-size: 25px; }
+.security-gate-card p { margin: 0; color: var(--muted); }
+.security-gate-card .category-icon { width: 48px; height: 48px; }
+.security-gate-card label { display: grid; gap: 7px; }
+.security-settings { width: 100%; }
+.reports-grid .report-numbers .report-amount { display: flex; flex-direction: column; gap: 2px; overflow-wrap: normal; }
+.report-amount > span:first-child { font-size: 12px; letter-spacing: .05em; font-weight: 800; opacity: .75; }
+.report-amount > span:last-child { font-size: clamp(18px, 2.3vw, 26px); line-height: 1.15; overflow-wrap: anywhere; }
+@media (max-width: 550px) { .report-amount > span:last-child { font-size: clamp(15px, 4.3vw, 21px); } }
+.modal .security-gate { min-height: 0; background: transparent; padding: 0; }
+.modal .security-gate-card { padding: 12px 0; background: transparent; }
 .public-legal .legal-back { width: 40px; height: 40px; }
 .legal-contact a {
   display: inline-block;

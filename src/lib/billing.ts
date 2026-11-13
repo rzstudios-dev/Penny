@@ -38,14 +38,14 @@ export async function redeemPremiumCode(code: string) {
       body?.error || "Code could not be redeemed. Please try again.",
     );
   }
-  if (!data?.active || !data?.lifetime)
+  if (!data?.active || (!data?.lifetime && !data?.expiresAt))
     throw new Error("Code could not be redeemed. Please try again.");
   const { data: session } = await cloud.auth.getSession();
   if (session.session?.user.id !== user.id)
     throw new Error(
       "Your sign-in changed. Please sign in again to view Premium.",
     );
-  return { active: true, lifetime: true, expiresAt: null, everPremium: true };
+  return { active: true, lifetime: !!data.lifetime, expiresAt: data.expiresAt || null, everPremium: true, source: "code" as const };
 }
 export async function getProduct() {
   if (Capacitor.getPlatform() !== "android") return null;

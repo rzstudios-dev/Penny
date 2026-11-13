@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { googleLogin, sendCode, signInWithPassword, verifyCode, supabase } from "../lib/cloud";
+import { googleLogin, sendCode, verifyCode, supabase } from "../lib/cloud";
 import Icon from "./Icon";
 export default function AuthForm({
   onSuccess,
@@ -10,8 +10,6 @@ export default function AuthForm({
 }) {
   const [email, setEmail] = useState(""),
     [code, setCode] = useState(""),
-    [password, setPassword] = useState(""),
-    [passwordMode, setPasswordMode] = useState(false),
     [sent, setSent] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -42,10 +40,7 @@ export default function AuthForm({
   const submit = (event: FormEvent) => {
     event.preventDefault();
     void run(async () => {
-      if (passwordMode) {
-        await signInWithPassword(email, password);
-        onSuccess();
-      } else if (sent) {
+      if (sent) {
         await verifyCode(email, code);
         onSuccess();
       } else {
@@ -125,23 +120,11 @@ export default function AuthForm({
             placeholder="you@example.com"
             autoComplete="email"
             required
-            disabled={sent && !passwordMode}
+            disabled={sent}
             onChange={(e) => setEmail(e.target.value)}
           />
         </label>
-        {passwordMode && (
-          <label>
-            Password
-            <input
-              type="password"
-              value={password}
-              autoComplete="current-password"
-              required
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
-        )}
-        {sent && !passwordMode && (
+        {sent && (
           <>
             <p className="muted">Check your inbox. Tap the sign-in link, or enter a code if your email includes one.</p>
             <label>
@@ -157,16 +140,14 @@ export default function AuthForm({
             </label>
           </>
         )}
-        <button className="button primary full" disabled={busy || !accepted || (passwordMode ? password.length < 6 : sent && code.length < 6)}>
+        <button className="button primary full" disabled={busy || !accepted || (sent && code.length < 6)}>
           {busy
             ? "Just a moment…"
-            : passwordMode
-              ? "Sign in with password"
             : sent
               ? "Confirm code"
               : "Email me a sign-in link"}
         </button>
-        {sent && !passwordMode && (
+        {sent && (
           <div className="auth-email-actions">
             <button className="text-button" type="button" disabled={busy || cooldown > 0} onClick={() => {
               void run(async () => { await sendCode(email); setCooldown(60); });
@@ -179,32 +160,14 @@ export default function AuthForm({
           </div>
         )}
       </form>
-      <button
-        type="button"
-        className="text-button auth-method-switch"
-        onClick={() => {
-          setPasswordMode((current) => !current);
-          setSent(false);
-          setCode("");
-          setPassword("");
-          setError("");
-        }}
-      >
-        {passwordMode ? "Use an email code instead" : "Have a password? Sign in"}
-      </button>
       <small className="center">
-        {passwordMode
-          ? "New to Penny? Use an email code to create your account."
-          : "New to Penny? Your account is created after you verify your email."}
+        New to Penny? Your account is created after you verify your email.
       </small>
       {error && (
         <p role="alert" className="form-error">
           {error}
         </p>
       )}
-      <small className="center">
-        No ads. No selling your spending data. Just a little peace of mind.
-      </small>
     </div>
   );
 }

@@ -23,10 +23,7 @@ vi.mock("@capacitor/local-notifications", () => ({
     schedule: mocks.schedule,
   },
 }));
-import {
-  configureNotifications,
-  sendTestNotification,
-} from "../../src/lib/notifications";
+import { configureNotifications } from "../../src/lib/notifications";
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.native = true;
@@ -37,17 +34,18 @@ beforeEach(() => {
   mocks.cancel.mockResolvedValue({});
 });
 describe("Android reminder choices", () => {
-  it("schedules daily, monthly free-plan and weekly signed-out reminders independently", async () => {
+  it("schedules daily, monthly free-plan and two signed-out reminders independently", async () => {
     await configureNotifications(
       { ...defaultSettings, reminders: "daily" },
       false,
       false,
     );
     const list = mocks.schedule.mock.calls[0][0].notifications;
-    expect(list.map((n: { id: number }) => n.id)).toEqual([1001, 1002, 1003]);
+    expect(list.map((n: { id: number }) => n.id)).toEqual([1001, 1002, 1003, 1004]);
     expect(list[0].schedule.on).toEqual({ hour: 19, minute: 0 });
     expect(list[1].schedule.on.day).toBe(2);
-    expect(list[2].schedule.on.weekday).toBe(1);
+    expect(list[2].schedule.at).toBeInstanceOf(Date);
+    expect(list[2].isExactNotification).toBe(false);
   });
   it.each(["weekly", "monthly"] as const)(
     "uses the selected %s calendar schedule",
@@ -70,7 +68,7 @@ describe("Android reminder choices", () => {
       );
     },
   );
-  it("removes recurring reminders when disabled without canceling a test notification", async () => {
+  it("removes reminders when disabled", async () => {
     mocks.pending = [{ id: 1001 }, { id: 1003 }, { id: 1004 }];
     await configureNotifications(
       {
@@ -82,7 +80,7 @@ describe("Android reminder choices", () => {
       false,
     );
     expect(mocks.cancel).toHaveBeenCalledWith({
-      notifications: [{ id: 1001 }, { id: 1003 }],
+      notifications: [{ id: 1001 }, { id: 1003 }, { id: 1004 }],
     });
     expect(mocks.schedule).not.toHaveBeenCalled();
     expect(mocks.request).not.toHaveBeenCalled();
@@ -103,13 +101,6 @@ describe("Android reminder choices", () => {
       ),
     ).rejects.toThrow(/Android settings/);
     expect(mocks.schedule).not.toHaveBeenCalled();
-  });
-  it("sends a real native test five seconds later", async () => {
-    const start = Date.now();
-    await sendTestNotification();
-    const note = mocks.schedule.mock.calls[0][0].notifications[0];
-    expect(note.id).toBe(1004);
-    expect(note.schedule.at.getTime()).toBeGreaterThanOrEqual(start + 5000);
   });
 });
 describe("On-open tips", () => {

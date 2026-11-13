@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Capacitor } from "@capacitor/core";
 import {
   formatMoney,
   walletSettings,
@@ -8,16 +7,17 @@ import {
 } from "../lib/model";
 import {
   configureNotifications,
-  sendTestNotification,
   notificationStatus,
 } from "../lib/notifications";
 import { exportTransactions, exportFullBackup } from "../lib/files";
 import Select from "./Select";
 import Icon from "./Icon";
+import { PinSetup } from "./Security";
 
 export type ProfilePage =
   | "menu"
   | "appearance"
+  | "security"
   | "reminders"
   | "data"
   | "backups"
@@ -25,23 +25,22 @@ export type ProfilePage =
   | "delete";
 type Props = {
   initialPage?: ProfilePage;
-  onBackFromNotifications?: () => void;
   onPageChange?: (page: ProfilePage) => void;
   onPremium: () => void;
   ledger: Ledger;
   signedIn: boolean;
+  email?: string;
   premium: boolean;
   update: (updater: (ledger: Ledger) => Ledger) => void;
   onImport: () => void;
-  onReset: () => void;
   onDelete: () => void;
+  onKeepLocal: () => void;
   onLegal: (page: "privacy" | "terms" | "about" | "delete") => void;
   onLogin: () => void;
   onLogout: () => void;
   onReload: () => void;
   onCloudEnable: () => void;
   onCloudDisable: () => void;
-  onCloudDelete: () => void;
   onMessage: (message: string) => void;
 };
 const sections: {
@@ -57,10 +56,22 @@ const sections: {
     note: "Dates, decimals and calculator",
   },
   {
+    id: "security",
+    icon: "lock",
+    title: "App lock",
+    note: "Penny PIN and fingerprint",
+  },
+  {
     id: "data",
     icon: "cloud",
     title: "Sign-in & cloud sync",
     note: "Your data stays local until you choose sync",
+  },
+  {
+    id: "reminders",
+    icon: "bell",
+    title: "Notifications & tips",
+    note: "Gentle check-ins on your schedule",
   },
   {
     id: "backups",
@@ -97,7 +108,7 @@ export default function Profile(props: Props) {
   }, [props.initialPage]);
   useEffect(() => {
     props.onPageChange?.(page);
-  }, [page, props.onPageChange]);
+  }, [page]);
   useEffect(() => {
     if (page === "reminders")
       void notificationStatus()
@@ -158,11 +169,8 @@ export default function Profile(props: Props) {
         <div className="settings-page-header">
           <button
             className="icon-button"
-            aria-label={page === "reminders" && props.onBackFromNotifications ? "Back to previous page" : "Back to profile"}
-            onClick={() => {
-              if (page === "reminders" && props.onBackFromNotifications) props.onBackFromNotifications();
-              else setPage("menu");
-            }}
+            aria-label="Back to profile"
+            onClick={() => setPage("menu")}
           >
             <Icon name="left" size={20} />
           </button>
@@ -171,6 +179,7 @@ export default function Profile(props: Props) {
       )}
       {page === "menu" && (
         <>
+          {props.signedIn && <p className="profile-account-line"><Icon name="user" size={15} /> {props.email}</p>}
           <button
             className="profile-membership membership-banner"
             onClick={props.onPremium}
@@ -192,14 +201,13 @@ export default function Profile(props: Props) {
               </p>
               <span className="membership-cta">
                 {props.premium
-                  ? "Manage membership"
+                  ? "View membership"
                   : "Explore Premium · $5/month"}
                 <Icon name="arrow" size={17} />
               </span>
             </div>
           </button>
           <section className="panel profile-menu profile-menu-compact">
-            {action("reset", "Refresh this month’s progress", "", props.onReset)}
             {sections.map((item) => (
               <div key={item.id}>
                 {action(item.icon, item.title, "", () => setPage(item.id))}
@@ -278,12 +286,14 @@ export default function Profile(props: Props) {
           <small>Set each wallet’s currency from Wallets.</small>
         </section>
       )}
+      {page === "security" && <section className="panel settings-section"><PinSetup /></section>}
       {page === "reminders" && (
         <section className="panel settings-section" id="reminders">
           <p className="notification-permission-status">
             <Icon name="bell" size={17} />
             {status}
           </p>
+          <p className="muted">Budget check-ins are short reminders to review your spending and envelopes.</p>
           <div className="form-grid">
             <label>
               Budget check-ins
@@ -315,8 +325,8 @@ export default function Profile(props: Props) {
           </div>
           <label className="toggle-row">
             <span>
-              <strong>Weekly sign-in reminder</strong>
-              <small>Only while signed out · turn on sync to back up</small>
+              <strong>Sign-in reminder</strong>
+              <small>Once a month for the first two months, while signed out</small>
             </span>
             <input
               type="checkbox"
@@ -362,25 +372,11 @@ export default function Profile(props: Props) {
           >
             Save reminder preferences
           </button>
-          {Capacitor.isNativePlatform() && (
-            <button
-              className="button secondary"
-              disabled={busy}
-              onClick={() => {
-                setBusy(true);
-                void sendTestNotification()
-                  .then(() => onMessage("A little test arrives in 5 seconds."))
-                  .catch((error) => onMessage(error.message))
-                  .finally(() => setBusy(false));
-              }}
-            >
-              Send a test notification
-            </button>
-          )}
         </section>
       )}
       {page === "data" && (
         <section className="panel settings-section">
+          {props.signedIn && <p className="signed-in-email">Signed in as <strong>{props.email}</strong></p>}
           {action(
             "user",
             props.signedIn ? "Sign out" : "Sign in to Penny",
@@ -403,11 +399,7 @@ export default function Profile(props: Props) {
               }
             />
           </label>
-          <small>
-            {s.cloudSync
-              ? "Turning sync off stops future uploads. Delete the cloud copy separately if desired."
-              : "Your entries are saved only on this device. Keep a backup before clearing app data or uninstalling."}
-          </small>
+          <small>{s.cloudSync ? "Your device and cloud copy are syncing." : "Your entries are saved on this device. Export a backup before uninstalling."}</small>
           {props.signedIn && (
             <>
               {action(
@@ -415,12 +407,6 @@ export default function Profile(props: Props) {
                 "Reload cloud data",
                 "Export a backup first",
                 props.onReload,
-              )}
-              {action(
-                "trash",
-                "Delete cloud copy only",
-                "Keep your local records",
-                props.onCloudDelete,
               )}
             </>
           )}
@@ -488,6 +474,7 @@ export default function Profile(props: Props) {
               ? "Delete account & all data"
               : "Delete all device data"}
           </button>
+          {props.signedIn && <button className="button secondary full" onClick={props.onKeepLocal}>Delete Penny account · keep device data</button>}
           <small>Cancel any Google Play subscription separately to stop future charges.</small>
         </section>
       )}

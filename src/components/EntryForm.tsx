@@ -165,7 +165,7 @@ export default function EntryForm({
           onChange={(event) => setDetails(event.target.value)}
         />
       </label>
-      <div className="form-grid">
+      <div className="entry-wallet-envelope">
         {kind === "expense" && (
           <label>
             Envelope

@@ -1,4 +1,12 @@
-# Penny release status — 12 November 2026
+# Penny release status — 13 November 2026
+
+## Current revision
+
+- Version 2 (1.0.1) builds as a signed Android App Bundle. This revision adds optional PIN/biometric app lock, balance adjustments, wallet deletion, revised reminders, a new store icon, and a one-year Premium code path. The bundle is local only; version 1 remains the Play internal-testing draft until version 2 is uploaded.
+- The new `20261113000000_penny_year_code_and_adjustments.sql` migration and updated Premium Edge Functions are prepared locally, but are **not deployed**. Set the one-year code as the server-only `PENNY_YEAR_CODE` secret after deployment. Do not publish version 2 with cloud sync or code redemption until the live backend is updated and verified.
+- The public Google Sites policies still need the [revised privacy](../legal/privacy-policy.md), [terms](../legal/terms-and-conditions.md), and [deletion](../legal/account-deletion.md) copy published. The old pages still describe weekly sign-in reminders and lifetime codes only.
+- The public password sign-in choice was removed. Play reviewer access instructions based on the existing password account must be replaced with a working review method before submitting the app. Google Play Billing remains unverified until the subscription product and service account are configured and a Play-installed test purchase succeeds.
+- The Play icon in [release-assets](../release-assets/play-store-icon.png) has a contrasting sage background and must replace the earlier icon in Play Console. This local build and automated tests do not prove device biometric, notification, Google sign-in, or live subscription behavior.
 
 Penny has a signed Android App Bundle, a saved Play Store listing and an internal testing draft. It is **not ready for a public rollout**: live authentication, billing, reviewer access, required Play declarations and the closed-test gate still need completion.
 

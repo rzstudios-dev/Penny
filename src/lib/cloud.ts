@@ -169,6 +169,7 @@ export async function getEntitlement(): Promise<Entitlement> {
     expiresAt: data.expiresAt,
     everPremium: !!data.everPremium,
     lifetime: !!data.lifetime,
+    source: data.source,
   };
 }
 export async function deleteCloudAccount() {

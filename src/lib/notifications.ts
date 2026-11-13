@@ -39,7 +39,7 @@ async function scheduleNotifications(
   }
   const pending = await LocalNotifications.getPending();
   const ours = pending.notifications.filter((n) =>
-    [1001, 1002, 1003].includes(n.id),
+    [1001, 1002, 1003, 1004].includes(n.id),
   );
   if (ours.length) await LocalNotifications.cancel({ notifications: ours });
   const enabled =
@@ -77,6 +77,7 @@ async function scheduleNotifications(
       title: "A little Penny check-in",
       body: "Give today’s spending a home.",
       channelId: "penny-gentle-reminders",
+      isExactNotification: false,
       schedule: { on, allowWhileIdle: false },
     });
   }
@@ -86,22 +87,27 @@ async function scheduleNotifications(
       title: "A little more possibility",
       body: "More pockets. More insights. Meet Premium.",
       channelId: "penny-gentle-reminders",
+      isExactNotification: false,
       schedule: {
         on: { day: 2, hour: settings.reminderHour, minute: 0 },
         allowWhileIdle: false,
       },
     });
-  if (!signedIn && settings.loginReminder)
-    notifications.push({
-      id: 1003,
-      title: "Keep your pennies safe",
-      body: "Sign in & turn on cloud backup.",
-      channelId: "penny-gentle-reminders",
-      schedule: {
-        on: { weekday: 1, hour: settings.reminderHour, minute: 0 },
-        allowWhileIdle: false,
-      },
-    });
+  if (!signedIn && settings.loginReminder) {
+    const installed = new Date(settings.installedAt);
+    if (!Number.isNaN(installed.getTime())) for (let month = 1; month <= 2; month++) {
+      const at = new Date(installed.getFullYear(), installed.getMonth() + month, Math.min(installed.getDate(), 28), settings.reminderHour);
+      if (at.getTime() <= Date.now()) continue;
+      notifications.push({
+        id: 1002 + month,
+        title: "Keep your pennies safe",
+        body: "Sign in and turn on cloud sync.",
+        channelId: "penny-gentle-reminders",
+        isExactNotification: false,
+        schedule: { at, allowWhileIdle: false },
+      });
+    }
+  }
   if (notifications.length)
     await LocalNotifications.schedule({ notifications });
 }
@@ -120,35 +126,9 @@ export async function notificationStatus() {
     return "Device notifications are off. Save to request permission.";
   const { notifications } = await LocalNotifications.getPending();
   const count = notifications.filter((n) =>
-    [1001, 1002, 1003].includes(n.id),
+    [1001, 1002, 1003, 1004].includes(n.id),
   ).length;
   return count
     ? `Notifications enabled · ${count} reminder${count === 1 ? "" : "s"} scheduled`
     : "Notifications enabled · no reminders scheduled";
-}
-export async function sendTestNotification() {
-  if (!Capacitor.isNativePlatform())
-    throw new Error("Test notifications are available in the Android app.");
-  let permission = await LocalNotifications.checkPermissions();
-  if (permission.display !== "granted")
-    permission = await LocalNotifications.requestPermissions();
-  if (permission.display !== "granted")
-    throw new Error("Enable notifications in Android settings first.");
-  await LocalNotifications.createChannel({
-    id: "penny-gentle-reminders",
-    name: "Budget tips & reminders",
-    importance: 3,
-    visibility: 0,
-  });
-  await LocalNotifications.schedule({
-    notifications: [
-      {
-        id: 1004,
-        title: "Hello from Penny ♡",
-        body: "Your little reminders are ready.",
-        channelId: "penny-gentle-reminders",
-        schedule: { at: new Date(Date.now() + 5000) },
-      },
-    ],
-  });
 }

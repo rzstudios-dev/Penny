@@ -13,9 +13,9 @@ export default function AdvancedReports({ ledger }: { ledger: Ledger }) {
       () => ledger.transactions.filter((t) => t.date >= from && t.date <= to),
       [ledger.transactions, from, to],
     ),
-    expenses = entries.filter((t) => t.kind === "expense"),
+    expenses = entries.filter((t) => t.kind === "expense" && t.expenseType !== "adjustment"),
     income = entries
-      .filter((t) => t.kind === "income")
+      .filter((t) => t.kind === "income" && t.expenseType !== "adjustment")
       .reduce((sum, t) => sum + t.amount, 0),
     spent = expenses.reduce((sum, t) => sum + t.amount, 0);
   const weekdays = Array.from({ length: 7 }, (_, day) => ({

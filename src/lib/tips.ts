@@ -2,8 +2,8 @@ import { dateKey, formatMoney, type Ledger, type Settings, type Transaction } fr
 
 export type SpendingTip = { key: string; text: string };
 export function spendingTips(ledger: Ledger, transactions: Transaction[]): SpendingTip[] {
-  const expenses = transactions.filter((tx) => tx.kind === "expense");
-  const income = transactions.filter((tx) => tx.kind === "income").reduce((sum, tx) => sum + tx.amount, 0);
+  const expenses = transactions.filter((tx) => tx.kind === "expense" && tx.expenseType !== "adjustment");
+  const income = transactions.filter((tx) => tx.kind === "income" && tx.expenseType !== "adjustment").reduce((sum, tx) => sum + tx.amount, 0);
   const spent = expenses.reduce((sum, tx) => sum + tx.amount, 0);
   const money = (amount: number) => formatMoney(amount, ledger.settings);
   if (!expenses.length) return [{

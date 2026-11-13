@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Capacitor } from "@capacitor/core";
 import {
   getProduct,
   restorePurchases,
@@ -28,11 +27,7 @@ export default function Premium({
     [busy, setBusy] = useState(false),
     [code, setCode] = useState("");
   useEffect(() => {
-    void getProduct()
-      .then(setProduct)
-      .catch(() =>
-        setError("Subscription unavailable. Please try again later."),
-      );
+    void getProduct().then(setProduct).catch(() => {});
   }, []);
   async function checkout(restore = false) {
     if (!signedIn) {
@@ -42,13 +37,11 @@ export default function Premium({
     setBusy(true);
     setError("");
     try {
-      if (!restore && !product)
-        throw new Error(
-          "Subscribe from the Android app once Google Play checkout is available.",
-        );
+      const selected = restore ? null : product || await getProduct();
+      if (!restore && !selected) throw new Error("Subscribe in Penny on Android.");
       const result = restore
         ? await restorePurchases()
-        : await subscribe(product!);
+        : await subscribe(selected!);
       onChange(result);
       if (restore && !result.active) setError("No active subscription found.");
     } catch (caught) {
@@ -92,11 +85,11 @@ export default function Premium({
                 ? "Lifetime Premium is yours"
                 : "Your Premium is active"}
             </h3>
-            <p>All your extra features are unlocked.</p>
+            <p>{entitlement.source === "code" && entitlement.expiresAt ? `Access through ${new Date(entitlement.expiresAt).toLocaleDateString()}.` : "All your extra features are unlocked."}</p>
           </div>
         ) : (
           <>
-            <div className="premium-offer-kicker"><Icon name="sparkle" size={16} /> THE FULL PENNY EXPERIENCE</div>
+            <div className="premium-offer-kicker"><Icon name="sparkle" size={16} /> {entitlement.everPremium ? "RENEW PREMIUM" : "NOT SUBSCRIBED"}</div>
             <div className="premium-offer-price">
               <div>
                 <strong>{product?.price || "$5"}</strong>
@@ -111,10 +104,7 @@ export default function Premium({
             )}
             <button
               className="button premium-buy full"
-              disabled={
-                busy ||
-                (signedIn && Capacitor.getPlatform() === "android" && !product)
-              }
+              disabled={busy}
               onClick={() => {
                 void checkout();
               }}
@@ -200,7 +190,7 @@ export default function Premium({
         >
           Restore purchase
         </button>
-        <a
+        {entitlement.active && !entitlement.lifetime && entitlement.source !== "code" && <a
           className="text-button"
           href={
             "https://play.google.com/store/account/subscriptions?sku=" +
@@ -210,8 +200,8 @@ export default function Premium({
           target="_blank"
           rel="noreferrer"
         >
-          Manage subscription
-        </a>
+          Cancel renewal in Google Play
+        </a>}
       </div>
     </section>
   );

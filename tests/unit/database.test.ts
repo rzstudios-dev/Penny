@@ -131,6 +131,9 @@ describe("Separate Penny database security (in-memory PostgreSQL; no connections
         db.query("select public.penny_grant_lifetime_premium($1)", [bob]),
       ).rejects.toThrow(/permission denied/);
       await expect(
+        db.query("select public.penny_grant_year_premium($1)", [bob]),
+      ).rejects.toThrow(/permission denied/);
+      await expect(
         db.query(
           "update public.penny_entitlements set lifetime = true where user_id = $1",
           [bob],
@@ -203,6 +206,19 @@ describe("Separate Penny database security (in-memory PostgreSQL; no connections
       await db.query("select public.penny_save_ledger($1::jsonb, 2)", [
         JSON.stringify(ledger),
       ]);
+    });
+  });
+  it("grants a one-year code once and accepts a recorded balance adjustment", async () => {
+    await db.exec("set role service_role");
+    try {
+      const result = await db.query<{ expires: string }>("select public.penny_grant_year_premium($1) as expires", [bob]);
+      expect(new Date(result.rows[0].expires).getTime()).toBeGreaterThan(Date.now());
+      await expect(db.query("select public.penny_grant_year_premium($1)", [bob])).rejects.toThrow(/already redeemed/);
+    } finally { await db.exec("reset role"); }
+    await asUser(bob, async () => {
+      const ledger = fixtureLedger();
+      ledger.transactions.push({ id: "adjustment", accountId: ledger.accounts[0].id, categoryId: "", kind: "expense", amount: 25000, note: "Balance adjustment", date: "2026-10-05", createdAt: "2026-10-05T12:00:00", expenseType: "adjustment" });
+      await db.query("select public.penny_save_ledger($1::jsonb, 0)", [JSON.stringify(ledger)]);
     });
   });
   it("rejects expenses assigned to an envelope in another wallet", async () => {

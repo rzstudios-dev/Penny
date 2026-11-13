@@ -36,7 +36,7 @@ import {
 } from "./lib/model";
 import { usePenny } from "./lib/usePenny";
 import { deleteCloudAccount, loadCloud, supabase } from "./lib/cloud";
-import { clearNotifications } from "./lib/notifications";
+import { clearNotifications, configureNotifications } from "./lib/notifications";
 import { removeSnapshot } from "./lib/storage";
 import { exportTransactions } from "./lib/files";
 import Icon from "./components/Icon";
@@ -52,6 +52,8 @@ import Profile, { type ProfilePage } from "./components/Profile";
 import WalletForm, { WalletOnboarding } from "./components/WalletForm";
 import IncomeForm from "./components/IncomeForm";
 import ReportsTips from "./components/ReportsTips";
+import { SecurityPrompt } from "./components/Security";
+import { clearPin, loadSecurity, type SecurityConfig } from "./lib/security";
 import { spendingTips, tipPeriod } from "./lib/tips";
 const AdvancedReports = lazy(() => import("./components/AdvancedReports"));
 import TransactionList from "./components/TransactionList";
@@ -85,6 +87,8 @@ type Dialog =
         | "reset"
         | "reset-confirm"
         | "delete"
+        | "delete-local"
+        | "security"
         | "fresh"
         | "expired"
         | "tip";
@@ -105,6 +109,17 @@ export default function App() {
     [dialog, setDialog] = useState<Dialog | null>(null),
     [monthOffset, setMonthOffset] = useState(0);
   const [profilePage, setProfilePage] = useState<ProfilePage>("menu");
+  const [securityConfig, setSecurityConfig] = useState<SecurityConfig | null | undefined>(undefined);
+  const [locked, setLocked] = useState(true);
+  useEffect(() => {
+    const refresh = () => { void loadSecurity().then((config) => { setSecurityConfig(config); if (!config) setLocked(false); }).catch(() => { setSecurityConfig(null); setLocked(false); }); };
+    refresh();
+    const changed = () => { refresh(); setLocked(false); };
+    window.addEventListener("penny-security-change", changed);
+    let remove: (() => void) | undefined;
+    if (Capacitor.isNativePlatform()) void NativeApp.addListener("appStateChange", (state) => { if (!state.isActive) setLocked(true); }).then((listener) => { remove = () => void listener.remove(); });
+    return () => { window.removeEventListener("penny-security-change", changed); remove?.(); };
+  }, []);
   const [search, setSearch] = useState(""),
     [kindFilter, setKindFilter] = useState("all"),
     [accountFilter, setAccountFilter] = useState("all"),
@@ -220,6 +235,8 @@ export default function App() {
         )}
       </div>
     );
+  if (securityConfig === undefined) return <div className="loading-screen"><h1>penny</h1></div>;
+  if (securityConfig && locked) return <SecurityPrompt config={securityConfig} onSuccess={() => setLocked(false)} />;
   return (
     <PennyView
       {...{
@@ -255,6 +272,7 @@ export default function App() {
         setBusy,
         dialogError,
         setDialogError,
+        securityConfig,
       }}
     />
   );
@@ -293,18 +311,18 @@ type ViewProps = {
   setBusy: (b: boolean) => void;
   dialogError: string;
   setDialogError: (s: string) => void;
+  securityConfig: SecurityConfig | null;
 };
 function PennyView(p: ViewProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false),
-    [notificationOrigin, setNotificationOrigin] = useState<{tab: Tab; profilePage?: ProfilePage} | null>(null),
     [tipUnread, setTipUnread] = useState(() => {
       try { return localStorage.getItem("penny:notification-tip-seen") !== dateKey(); }
       catch { return true; }
     }),
     [showFilters, setShowFilters] = useState(false);
   const tipChecked = useRef(false),
-    seenTip = useRef<string | null>(null),
-    currentProfilePage = useRef<ProfilePage>("menu");
+    secureAction = useRef<(() => void) | null>(null),
+    seenTip = useRef<string | null>(null);
   const {
     penny,
     ledger,
@@ -338,6 +356,7 @@ function PennyView(p: ViewProps) {
   const period = monthlyPeriod(ledger.settings, anchor),
     money = (value: number, compact = false) =>
       formatMoney(value, scopedLedger.settings, compact);
+  const reportNumber = (value: number) => new Intl.NumberFormat("en-US", { minimumFractionDigits: scopedLedger.settings.decimals, maximumFractionDigits: scopedLedger.settings.decimals }).format(value / SCALE).replace(/[.,]/g, (mark) => mark === "." ? scopedLedger.settings.decimalMark : scopedLedger.settings.decimalMark === "," ? "." : ",");
   const periodTransactions = useMemo(
     () =>
       ledger.transactions.filter(
@@ -363,10 +382,10 @@ function PennyView(p: ViewProps) {
     [scopedLedger, tipTransactions],
   );
   const spent = periodTransactions
-      .filter((t) => t.kind === "expense")
+      .filter((t) => t.kind === "expense" && t.expenseType !== "adjustment")
       .reduce((sum, t) => sum + t.amount, 0),
     income = periodTransactions
-      .filter((t) => t.kind === "income")
+      .filter((t) => t.kind === "income" && t.expenseType !== "adjustment")
       .reduce((sum, t) => sum + t.amount, 0),
     budget = scopedLedger.categories.reduce((sum, c) => sum + c.budget, 0);
   const sorted = [...ledger.transactions].sort(
@@ -473,6 +492,10 @@ function PennyView(p: ViewProps) {
       },
     }));
     close();
+    if (!ledger.accounts.length) {
+      setTab("home");
+      void configureNotifications(ledger.settings, entitlement.active, !!user, true).catch(() => {});
+    }
     if (ledger.accounts.length) message("Wallet saved.");
   }
   const editTx = (transaction: Transaction) =>
@@ -489,7 +512,6 @@ function PennyView(p: ViewProps) {
   };
   const changeTab = (next: Tab) => {
     if (next === "settings") setProfilePage("menu");
-    setNotificationOrigin(null);
     setTab(next);
     setNotificationsOpen(false);
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -501,10 +523,12 @@ function PennyView(p: ViewProps) {
       if (user) {
         await deleteCloudAccount();
         await penny.reset();
+        await clearPin();
         await clearNotifications();
       } else {
         await clearNotifications();
         await penny.reset();
+        await clearPin();
       }
       close();
       message("Your account data has been deleted.");
@@ -513,6 +537,19 @@ function PennyView(p: ViewProps) {
     } finally {
       p.setBusy(false);
     }
+  }
+  async function deleteAccountKeepLocal() {
+    p.setBusy(true);
+    p.setDialogError("");
+    try {
+      if (!user) throw new Error("Sign in to delete your Penny account.");
+      penny.disableCloud();
+      await deleteCloudAccount();
+      close();
+      message("Penny account deleted. Your device data is still here.");
+    } catch (caught) {
+      p.setDialogError((caught as Error).message);
+    } finally { p.setBusy(false); }
   }
   const monthControl = (
     <div className="month-switch">
@@ -666,13 +703,6 @@ function PennyView(p: ViewProps) {
             onLogin={() => {
               setNotificationsOpen(false);
               setDialog({ type: "login" });
-            }}
-            onSettings={() => {
-              const origin = { tab, profilePage: tab === "settings" ? currentProfilePage.current : undefined };
-              setNotificationsOpen(false);
-              changeTab("settings");
-              setNotificationOrigin(origin);
-              setProfilePage("reminders");
             }}
           />
         )}
@@ -858,15 +888,15 @@ function PennyView(p: ViewProps) {
                   <div className="report-numbers">
                     <div>
                       <small>Income</small>
-                      <strong className="positive">{money(income)}</strong>
+                      <strong className="positive report-amount"><span>{scopedLedger.settings.currency}</span><span>{reportNumber(income)}</span></strong>
                     </div>
                     <div>
                       <small>Spending</small>
-                      <strong>{money(spent)}</strong>
+                      <strong className="report-amount"><span>{scopedLedger.settings.currency}</span><span>{reportNumber(spent)}</span></strong>
                     </div>
                     <div>
                       <small>Left from income</small>
-                      <strong>{money(income - spent)}</strong>
+                      <strong className="report-amount"><span>{scopedLedger.settings.currency}</span><span>{reportNumber(income - spent)}</span></strong>
                     </div>
                   </div>
                   <SpendingChart
@@ -955,7 +985,7 @@ function PennyView(p: ViewProps) {
                 {ledger.accounts.map((a, index) => {
                   const envelopes = walletLedger(ledger, a.id).categories;
                   const walletTransactions = ledger.transactions.filter((t) => t.accountId === a.id);
-                  const walletSpent = walletTransactions.filter((t) => t.kind === "expense" && inPeriod(t, period.start, period.end)).reduce((sum, t) => sum + t.amount, 0);
+                  const walletSpent = walletTransactions.filter((t) => t.kind === "expense" && t.expenseType !== "adjustment" && inPeriod(t, period.start, period.end)).reduce((sum, t) => sum + t.amount, 0);
                   const walletBudget = envelopes.reduce((sum, c) => sum + c.budget, 0);
                   return (
                     <article className={`account-card panel wallet-tone-${index % 3}`} key={a.id}>
@@ -1027,25 +1057,20 @@ function PennyView(p: ViewProps) {
           {tab === "settings" && (
             <Profile
               initialPage={profilePage}
-              onPageChange={(page) => {
-                currentProfilePage.current = page;
-                setProfilePage(page);
-              }}
-              onBackFromNotifications={notificationOrigin ? () => {
-                changeTab(notificationOrigin.tab);
-                if (notificationOrigin.tab === "settings") setProfilePage(notificationOrigin.profilePage || "menu");
-              } : undefined}
+              onPageChange={setProfilePage}
               onPremium={() => setTab("premium")}
               ledger={ledger}
               signedIn={!!user}
+              email={user?.email}
               premium={entitlement.active}
               update={update}
               onImport={() => setDialog({ type: "import" })}
-              onReset={() => setDialog({ type: "reset" })}
               onDelete={() => setDialog({ type: "delete" })}
+              onKeepLocal={() => setDialog({ type: "delete-local" })}
               onLegal={legal}
               onLogin={() => setDialog({ type: "login" })}
               onLogout={() => {
+                if (!window.confirm("Sign out of Penny? Your device data will stay here. Cloud sync will turn off.")) return;
                 void supabase?.auth
                   .signOut()
                   .then(() => message("You’re signed out."))
@@ -1080,19 +1105,6 @@ function PennyView(p: ViewProps) {
               onCloudDisable={() => {
                 penny.disableCloud();
                 message("Cloud sync is off. Your local records stay here.");
-              }}
-              onCloudDelete={() => {
-                if (
-                  window.confirm(
-                    "Delete the cloud ledger and stop sync? This device’s data stays. Other devices may still hold offline copies.",
-                  )
-                )
-                  void penny
-                    .deleteCloudCopy()
-                    .then(() =>
-                      message("Cloud copy deleted. Local ledger kept."),
-                    )
-                    .catch((error) => message(error.message));
               }}
               onMessage={message}
             />
@@ -1159,7 +1171,7 @@ function PennyView(p: ViewProps) {
                 : "New transaction"
               : dialog.type === "category"
                 ? dialog.category
-                  ? "Your envelope & budget"
+                  ? "Edit envelope"
                   : "New envelope"
                 : dialog.type === "account"
                   ? dialog.account
@@ -1239,7 +1251,7 @@ function PennyView(p: ViewProps) {
                 );
               }}
               onDelete={() => {
-                if (window.confirm("Delete this transaction?")) {
+                const removeTransaction = () => { if (window.confirm("Delete this transaction?")) {
                   update((l) => ({
                     ...l,
                     transactions: l.transactions.filter(
@@ -1248,7 +1260,9 @@ function PennyView(p: ViewProps) {
                   }));
                   close();
                   message("Transaction deleted.");
-                }
+                }};
+                if (p.securityConfig) { secureAction.current = removeTransaction; setDialog({ type: "security" }); }
+                else removeTransaction();
               }}
             />
           )}
@@ -1322,15 +1336,14 @@ function PennyView(p: ViewProps) {
               ledger={ledger}
               initial={dialog.account}
               onSave={(account) => saveWallet(account, !!dialog.account)}
+              onAdjustment={(transaction) => {
+                update((l) => ({ ...l, transactions: [...l.transactions, transaction] }));
+                message("Balance adjustment recorded.");
+              }}
               onDelete={() => {
-                if (
-                  ledger.transactions.some(
-                    (t) => t.accountId === dialog.account?.id,
-                  )
-                )
-                  return;
                 update((l) => ({
                   ...l,
+                  transactions: l.transactions.filter((t) => t.accountId !== dialog.account?.id),
                   accounts: l.accounts.filter(
                     (a) => a.id !== dialog.account?.id,
                   ),
@@ -1364,6 +1377,7 @@ function PennyView(p: ViewProps) {
                   },
                 }));
                 close();
+                if (ledger.accounts.length === 1) setTab("home");
               }}
             />
           )}
@@ -1605,6 +1619,18 @@ function PennyView(p: ViewProps) {
               </button>
             </div>
           )}
+          {dialog.type === "delete-local" && (
+            <div className="form-stack">
+              <p>Delete your Penny account and cloud copy? Your transactions, wallets and envelopes will stay on this device. Cloud sync will turn off and you will be signed out.</p>
+              <label>Type DELETE to confirm
+                <input value={p.deleteWord} onChange={(event) => p.setDeleteWord(event.target.value)} placeholder="DELETE" autoComplete="off" />
+              </label>
+              {p.dialogError && <p role="alert" className="form-error">{p.dialogError}</p>}
+              <button className="button danger full" disabled={p.busy || p.deleteWord !== "DELETE"} onClick={() => void deleteAccountKeepLocal()}>{p.busy ? "Deleting…" : "Delete account · keep device data"}</button>
+              <button className="button secondary full" onClick={close}>Cancel</button>
+            </div>
+          )}
+          {dialog.type === "security" && p.securityConfig && <SecurityPrompt config={p.securityConfig} title="Confirm with Penny PIN" onSuccess={() => { const action = secureAction.current; secureAction.current = null; close(); action?.(); }} />}
           {dialog.type === "expired" && (
             <div className="form-stack">
               <img

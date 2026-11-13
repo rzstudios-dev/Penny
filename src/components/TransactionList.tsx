@@ -34,7 +34,8 @@ export default function TransactionList({
           <button
             className="transaction-row"
             key={tx.id}
-            onClick={() => onEdit(tx)}
+            onClick={() => { if (tx.expenseType !== "adjustment") onEdit(tx); }}
+            disabled={tx.expenseType === "adjustment"}
           >
             <span
               className={`category-icon color-${tx.kind === "income" ? "sage" : category?.color || "peach"}`}
@@ -51,8 +52,8 @@ export default function TransactionList({
               {tx.details && <small className="transaction-note">{tx.details}</small>}
               <small>
                 {compact
-                  ? category?.name || "Income"
-                  : `${category?.name || "Income"} · ${account?.name || "Account"}`}
+                  ? tx.expenseType === "adjustment" ? "Balance adjustment" : category?.name || "Income"
+                  : `${tx.expenseType === "adjustment" ? "Balance adjustment" : category?.name || "Income"} · ${account?.name || "Wallet"}`}
               </small>
             </span>
             <span

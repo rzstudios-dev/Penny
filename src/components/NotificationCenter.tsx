@@ -1,4 +1,3 @@
-import { Capacitor } from "@capacitor/core";
 import type { Settings } from "../lib/model";
 import Icon from "./Icon";
 export default function NotificationCenter({
@@ -6,7 +5,6 @@ export default function NotificationCenter({
   tip,
   signedIn,
   premium,
-  onSettings,
   onLogin,
   onClose,
 }: {
@@ -14,7 +12,6 @@ export default function NotificationCenter({
   tip: string;
   signedIn: boolean;
   premium: boolean;
-  onSettings: () => void;
   onLogin: () => void;
   onClose: () => void;
 }) {
@@ -61,19 +58,8 @@ export default function NotificationCenter({
           {settings.reminders === "never"
             ? "Budget check-ins are off."
             : `${settings.reminders.charAt(0).toUpperCase() + settings.reminders.slice(1)} check-ins at ${String(settings.reminderHour).padStart(2, "0")}:00.`}
-          {!signedIn && settings.loginReminder
-            ? " Weekly sign-in nudge is on."
-            : ""}
+          {!signedIn && settings.loginReminder ? " Monthly sign-in reminder is on." : ""}
         </p>
-        {!Capacitor.isNativePlatform() && (
-          <small>
-            Scheduled notifications are delivered by the Android app.
-          </small>
-        )}
-        <button className="text-button" onClick={onSettings}>
-          <Icon name="settings" size={16} />
-          Reminder settings
-        </button>
       </section>
     </>
   );

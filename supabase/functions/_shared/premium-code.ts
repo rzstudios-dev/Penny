@@ -3,7 +3,7 @@ export async function matchesPremiumCode(
   code: unknown,
   secret: string | undefined,
 ) {
-  if (!secret || secret.trim().length < 24 || secret.trim().length > 128)
+  if (!secret || secret.trim().length < 10 || secret.trim().length > 128)
     throw new Error("Code redemption is not configured");
   if (typeof code !== "string" || code.length > 128 || !code.trim())
     return false;

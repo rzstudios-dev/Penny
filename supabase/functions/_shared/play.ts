@@ -37,9 +37,11 @@ export async function verifyWithGoogle(purchaseToken: string, userId: string, pr
 }
 export async function subscriptionStatus(userId: string) {
   const client = adminClient();
-  const { data: membership, error: membershipError } = await client.from('penny_entitlements').select('lifetime').eq('user_id', userId).maybeSingle();
+  const { data: membership, error: membershipError } = await client.from('penny_entitlements').select('lifetime, code_expires_at').eq('user_id', userId).maybeSingle();
   if (membershipError) throw membershipError;
-  if (membership?.lifetime) return { active: true, lifetime: true, expiresAt: null, everPremium: true };
+  if (membership?.lifetime) return { active: true, lifetime: true, expiresAt: null, everPremium: true, source: 'code' };
+  if (membership?.code_expires_at && new Date(membership.code_expires_at).getTime() > Date.now())
+    return { active: true, lifetime: false, expiresAt: membership.code_expires_at, everPremium: true, source: 'code' };
   const { data: tokens, error: tokenError } = await client.rpc('penny_get_play_purchases', { owner_id: userId });
   if (tokenError) throw tokenError;
   if (tokens?.length) {
@@ -48,7 +50,7 @@ export async function subscriptionStatus(userId: string) {
     const statuses = [];
     for (const row of tokens) statuses.push(await verifyWithGoogle(row.purchase_token, userId, row.product_id));
     const active = statuses.filter(s => s.active).sort((a, b) => b.expiresAt.localeCompare(a.expiresAt))[0];
-    if (active) return active;
+    if (active) return { ...active, source: 'play' };
   }
   const { data, error } = await client.from('penny_entitlements').select('expires_at, ever_premium').eq('user_id', userId).maybeSingle();
   if (error) throw error;

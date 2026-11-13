@@ -7,7 +7,7 @@ import {
   type Settings,
 } from "../lib/model";
 import Icon from "./Icon";
-const colors = ["peach", "sage", "lavender", "yellow", "blue", "pink"] as const;
+const colors = ["peach", "sage", "lavender", "yellow", "blue", "pink", "coral", "teal", "plum", "olive", "clay", "indigo"] as const;
 export const categoryIcons = [
   "fork",
   "basket",
@@ -127,9 +127,7 @@ export default function CategoryForm({
           placeholder="0.00"
           onChange={(e) => setBudget(e.target.value)}
         />
-        <small>
-          Leave empty for no limit. Your spending history always stays.
-        </small>
+        <small>Leave empty for no limit.</small>
       </label>
       <label>Envelope icon</label>
       <div

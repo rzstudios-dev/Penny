@@ -65,6 +65,8 @@ test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(page.locator(".budget-overview")).toBeVisible();
+  const tip = page.getByRole("button", { name: "A little noted ♡" });
+  if (await tip.isVisible()) await tip.click();
 });
 
 test("wallets keep separate envelopes and a later wallet starts empty", async ({

@@ -20,7 +20,7 @@ const CategorySchema = z.object({
   id: z.string(),
   name: z.string().min(1).max(40),
   icon: z.string(),
-  color: z.enum(["peach", "sage", "lavender", "yellow", "blue", "pink"]),
+  color: z.enum(["peach", "sage", "lavender", "yellow", "blue", "pink", "coral", "teal", "plum", "olive", "clay", "indigo"]),
   budget: amountSchema,
   walletBudgets: z.record(z.string(), amountSchema).default({}),
   walletId: z.string().default(""),
@@ -42,6 +42,7 @@ const TransactionSchema = z.object({
     "subscription",
     "salary",
     "extra",
+    "adjustment",
   ]),
 });
 const IncomeScheduleSchema = z.object({
@@ -59,6 +60,7 @@ export const SettingsSchema = z.object({
   calculator: z.boolean(),
   cloudSync: z.boolean().default(false),
   loginReminder: z.boolean().default(true),
+  installedAt: z.string().default(() => new Date().toISOString()),
   resetDay: z.number().int().min(1).max(28),
   resetHour: z.number().int().min(0).max(23),
   reminders: z.enum(["never", "daily", "weekly", "monthly"]),
@@ -72,7 +74,7 @@ export const SettingsSchema = z.object({
   dailyIncomeStart: z.string().default(""),
   tipFrequency: z
     .enum(["never", "daily", "weekly", "monthly"])
-    .default("never"),
+    .default("weekly"),
   tipSeenPeriod: z.string().nullable().default(null),
   selectedWallet: z.string().default(""),
   hasCreatedWallet: z.boolean().default(false),
@@ -111,6 +113,7 @@ export type Entitlement = {
   expiresAt: string | null;
   everPremium: boolean;
   lifetime?: boolean;
+  source?: "code" | "play";
 };
 
 export const defaultSettings: Settings = {
@@ -121,6 +124,7 @@ export const defaultSettings: Settings = {
   calculator: false,
   cloudSync: false,
   loginReminder: true,
+  installedAt: new Date().toISOString(),
   resetDay: 1,
   resetHour: 0,
   reminders: "never",
@@ -132,7 +136,7 @@ export const defaultSettings: Settings = {
   dailyIncomeAccount: "",
   monthlyIncomeStart: "",
   dailyIncomeStart: "",
-  tipFrequency: "never",
+  tipFrequency: "weekly",
   tipSeenPeriod: null,
   selectedWallet: "",
   hasCreatedWallet: false,
@@ -507,7 +511,7 @@ export function parseLedger(raw: unknown): Ledger {
     if (!ledger.accounts.some((a) => a.id === t.accountId))
       throw new Error("Transaction wallet not found.");
     if (
-      t.kind === "expense" &&
+      t.kind === "expense" && t.expenseType !== "adjustment" &&
       !categories.some(
         (c) => c.id === t.categoryId && c.walletId === t.accountId,
       )
